@@ -48,12 +48,19 @@ export function ParticipantDashboard() {
 
     const myRequests = requests.filter(r => r.participantId === user.id);
     const myMeetings = meetings.filter(m => m.participants.includes(user.id));
+    const activeMeetings = myMeetings.filter(m => m.status === 'scheduled' || m.status === 'completed');
+
+    const hasMeetingForSlot = (participantId: string, availabilityId: string) =>
+        meetings.some(m => m.availabilityId === availabilityId && m.participants.includes(participantId));
+
+    // Pending requests are requests without an attached meeting yet.
+    const pendingRequests = myRequests.filter(r => !hasMeetingForSlot(user.id, r.availabilityId));
 
     const getSlotById = (slotId: string) => availabilities.find(a => a.id === slotId);
 
     // All unbooked slots for this+next week (Mon-Fri), plus slots already confirmed for this participant.
     const visibleSlots = availabilities.filter(a => {
-        const isMyMeeting = myMeetings.some(m => m.availabilityId === a.id);
+        const isMyMeeting = activeMeetings.some(m => m.availabilityId === a.id);
         if (!isMyMeeting && a.booked) return false;
 
         const parts = a.date.split('-');
@@ -63,9 +70,11 @@ export function ParticipantDashboard() {
         if (dow === 0 || dow === 6) return false;
         if (!(d >= thisWeekStart && d <= nextWeekEnd)) return false;
 
-        const iAlreadyRequested = myRequests.some(r => r.availabilityId === a.id);
+        const iAlreadyRequested = pendingRequests.some(r => r.availabilityId === a.id);
         if (!iAlreadyRequested && !isMyMeeting) {
-            const hasOtherRequest = requests.some(r => r.availabilityId === a.id && r.participantId !== user.id);
+            const hasOtherRequest = requests.some(
+                r => r.availabilityId === a.id && r.participantId !== user.id && !hasMeetingForSlot(r.participantId, r.availabilityId)
+            );
             if (hasOtherRequest) return false;
         }
         return true;
@@ -73,19 +82,17 @@ export function ParticipantDashboard() {
 
     // Max 3 reservations per ISO week.
     const reservedCountByWeek = new Map<string, number>();
-    myRequests.forEach(req => {
+    pendingRequests.forEach(req => {
         const slot = getSlotById(req.availabilityId);
         if (!slot) return;
         const weekKey = getISOWeekKey(slot.date);
         reservedCountByWeek.set(weekKey, (reservedCountByWeek.get(weekKey) || 0) + 1);
     });
-    myMeetings.forEach(m => {
-        if (m.status === 'scheduled' || m.status === 'completed') {
-            const slot = getSlotById(m.availabilityId);
-            if (!slot) return;
-            const weekKey = getISOWeekKey(slot.date);
-            reservedCountByWeek.set(weekKey, (reservedCountByWeek.get(weekKey) || 0) + 1);
-        }
+    activeMeetings.forEach(m => {
+        const slot = getSlotById(m.availabilityId);
+        if (!slot) return;
+        const weekKey = getISOWeekKey(slot.date);
+        reservedCountByWeek.set(weekKey, (reservedCountByWeek.get(weekKey) || 0) + 1);
     });
 
     const weeklySlots = visibleSlots.filter(a => {
@@ -271,8 +278,8 @@ export function ParticipantDashboard() {
                         slots={visibleSlots}
                         renderSlot={(slot) => {
                             const slotRequests = requests.filter(r => r.availabilityId === slot.id);
-                            const isJoined = myRequests.some(r => r.availabilityId === slot.id);
-                            const isMeeting = myMeetings.some(m => m.availabilityId === slot.id);
+                            const isJoined = pendingRequests.some(r => r.availabilityId === slot.id);
+                            const isMeeting = activeMeetings.some(m => m.availabilityId === slot.id);
                             const isSelected = selectedSlots.includes(slot.id);
                             const weekKey = getISOWeekKey(slot.date);
                             const currentWeekCount = (reservedCountByWeek.get(weekKey) || 0) + (selectedCountByWeek.get(weekKey) || 0);
@@ -304,8 +311,8 @@ export function ParticipantDashboard() {
                         weekOffset={weekFilter === 'this_week' ? 0 : 1}
                         renderSlot={(slot) => {
                             const slotRequests = requests.filter(r => r.availabilityId === slot.id);
-                            const isJoined = myRequests.some(r => r.availabilityId === slot.id);
-                            const isMeeting = myMeetings.some(m => m.availabilityId === slot.id);
+                            const isJoined = pendingRequests.some(r => r.availabilityId === slot.id);
+                            const isMeeting = activeMeetings.some(m => m.availabilityId === slot.id);
                             const isSelected = selectedSlots.includes(slot.id);
                             const weekKey = getISOWeekKey(slot.date);
                             const currentWeekCount = (reservedCountByWeek.get(weekKey) || 0) + (selectedCountByWeek.get(weekKey) || 0);

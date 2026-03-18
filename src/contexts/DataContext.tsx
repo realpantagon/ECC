@@ -158,8 +158,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
 
     const requestSlot = async (participantId: string, availabilityId: string, topic: string) => {
+        const hasCanceledMeetingForSlot = meetings.some(
+            m => m.participants.includes(participantId) && m.availabilityId === availabilityId && m.status === 'canceled'
+        );
+
         const exists = requests.find(r => r.participantId === participantId && r.availabilityId === availabilityId);
-        if (exists) return;
+        if (exists && !hasCanceledMeetingForSlot) return;
+
+        // If a previous canceled meeting left a stale request record, clear it so the participant can reserve again.
+        if (exists && hasCanceledMeetingForSlot) {
+            await supabase
+                .from('slot_requests')
+                .delete()
+                .eq('participant_id', participantId)
+                .eq('availability_id', availabilityId);
+
+            setRequests(prev => prev.filter(r => !(r.participantId === participantId && r.availabilityId === availabilityId)));
+        }
 
         const normalizedTopic = topic.trim();
         if (!normalizedTopic) {
@@ -172,24 +187,43 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         const weekKey = getISOWeekKey(targetSlot.date);
         let reservedCount = 0;
+        const countedAvailabilityIds = new Set<string>();
+
+        const participantMeetings = meetings.filter(m => m.participants.includes(participantId));
+        const activeMeetingSlotIds = new Set(
+            participantMeetings
+                .filter(m => m.status === 'scheduled' || m.status === 'completed')
+                .map(m => m.availabilityId)
+        );
+
+        const canceledMeetingSlotIds = new Set(
+            participantMeetings
+                .filter(m => m.status === 'canceled')
+                .map(m => m.availabilityId)
+        );
 
         requests
             .filter(r => r.participantId === participantId)
             .forEach(r => {
+                if (activeMeetingSlotIds.has(r.availabilityId)) return;
+                if (canceledMeetingSlotIds.has(r.availabilityId)) return;
+                if (countedAvailabilityIds.has(r.availabilityId)) return;
+
                 const slot = availabilities.find(a => a.id === r.availabilityId);
                 if (slot && getISOWeekKey(slot.date) === weekKey) {
+                    countedAvailabilityIds.add(r.availabilityId);
                     reservedCount += 1;
                 }
             });
 
-        meetings
-            .filter(m => m.participants.includes(participantId) && (m.status === 'scheduled' || m.status === 'completed'))
-            .forEach(m => {
-                const slot = availabilities.find(a => a.id === m.availabilityId);
-                if (slot && getISOWeekKey(slot.date) === weekKey) {
-                    reservedCount += 1;
-                }
-            });
+        activeMeetingSlotIds.forEach(availabilityId => {
+            if (countedAvailabilityIds.has(availabilityId)) return;
+            const slot = availabilities.find(a => a.id === availabilityId);
+            if (slot && getISOWeekKey(slot.date) === weekKey) {
+                countedAvailabilityIds.add(availabilityId);
+                reservedCount += 1;
+            }
+        });
 
         if (reservedCount >= 3) {
             console.warn("Weekly reservation limit reached for participant", participantId);

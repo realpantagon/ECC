@@ -4,14 +4,7 @@ import type { Availability, SlotRequest } from "../types/Availability";
 import type { Meeting, SessionLog } from "../types/Meeting";
 import { supabase } from "../lib/supabase";
 
-function getISOWeekKey(dateStr: string): string {
-    const parts = dateStr.split('-');
-    const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    const jan4 = new Date(d.getFullYear(), 0, 4);
-    const dayDiff = (d.getTime() - jan4.getTime()) / 86400000;
-    const weekNum = Math.ceil((dayDiff + jan4.getDay() + 1) / 7);
-    return `${d.getFullYear()}-W${weekNum}`;
-}
+import { getISOWeekKey } from "../shared/utils/dateUtils";
 
 export interface DataContextType {
     users: User[];
@@ -32,7 +25,6 @@ export interface DataContextType {
     cancelMeeting: (meetingId: string) => Promise<void>;
     cancelRequest: (requestId: string) => Promise<void>;
     completeMeeting: (meetingId: string) => Promise<void>;
-    updateParticipantScore: (participantId: string, newScore: number) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -368,15 +360,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setMeetings(prev => prev.map(m => m.id === meetingId ? { ...m, status: 'completed' } : m));
     };
 
-    const updateParticipantScore = async (participantId: string, newScore: number) => {
-        const { error } = await supabase.from('users').update({ score: newScore }).eq('id', participantId);
-        if (error) {
-            console.error("Error updating participant score:", error);
-            return;
-        }
-        setUsers(prev => prev.map(u => u.id === participantId ? { ...u, score: newScore } : u));
-    };
-
     return (
         <DataContext.Provider
             value={{
@@ -392,7 +375,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 cancelMeeting,
                 cancelRequest,
                 completeMeeting,
-                updateParticipantScore,
             }}
         >
             {children}

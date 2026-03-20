@@ -16,7 +16,7 @@ function DashboardRouter() {
   return (
     <>
       <Navbar />
-      <div className="container" style={{ paddingBottom: '3rem' }}>
+      <div className="max-w-6xl mx-auto px-4 pb-12">
         {user.role === "buddy" && <BuddyDashboard />}
         {user.role === "participant" && <ParticipantDashboard />}
         {user.role === "admin" && <AdminDashboard />}

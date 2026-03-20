@@ -1,7 +1,6 @@
 import type { Availability } from "../types/Availability";
 import type { User } from "../types/User";
 import { Clock, Calendar, Users, Trash2 } from "lucide-react";
-import "./SlotCard.css";
 
 interface SlotCardProps {
     slot: Availability;
@@ -24,46 +23,52 @@ export function SlotCard({
     isJoined = false,
     isSelected = false
 }: SlotCardProps) {
+    const cardBorder = isSelected && !slot.booked ? "border-blue-500 border-2" : "border-blue-100";
+
     return (
-        <div className={`slot-card glass-panel animate-fade-in ${slot.booked ? "slot-booked" : isSelected ? "slot-selected" : ""}`} style={{
-            borderColor: isSelected && !slot.booked ? 'var(--primary-color)' : undefined,
-            borderWidth: isSelected && !slot.booked ? '2px' : undefined
-        }}>
-            <div className="slot-header">
-                <div className="slot-time-badge">
-                    <Calendar size={14} />
+        <div className={`bg-white/85 backdrop-blur-md border ${cardBorder} rounded-2xl shadow-md shadow-blue-100/30 p-5 flex flex-col gap-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg animate-fade-in ${slot.booked ? "opacity-60 pointer-events-none" : ""}`}>
+            {/* Header */}
+            <div className="flex justify-between items-start">
+                <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wide">
+                    <Calendar size={13} />
                     <span>{new Date(slot.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                 </div>
-                {slot.booked && <span className="status-badge booked">Booked</span>}
-                {!slot.booked && isJoined && <span className="status-badge joined">Joined</span>}
+                {slot.booked && (
+                    <span className="text-xs font-bold uppercase bg-red-50 text-red-500 px-2 py-0.5 rounded">Booked</span>
+                )}
+                {!slot.booked && isJoined && (
+                    <span className="text-xs font-bold uppercase bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded">Joined</span>
+                )}
             </div>
 
-            <div className="slot-body">
-                <div className="time-row">
-                    <Clock size={16} className="icon-subtle" />
-                    <span className="time-text">{slot.start} - {slot.end}</span>
+            {/* Body */}
+            <div className="flex flex-col gap-2.5">
+                <div className="flex items-center gap-2 text-xl font-semibold text-slate-800">
+                    <Clock size={16} className="text-slate-400" />
+                    <span>{slot.start} - {slot.end}</span>
                 </div>
                 {showBuddyName && buddy && (
-                    <div className="detail-row">
-                        <span className="label">Buddy:</span>
-                        <span className="value">{buddy.name}</span>
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-500">Buddy:</span>
+                        <span className="font-medium text-slate-800">{buddy.name}</span>
                     </div>
                 )}
                 {(participantCount > 0 || showBuddyName) && (
-                    <div className="detail-row">
-                        <span className="label">Participants:</span>
-                        <div className="participant-count">
-                            <Users size={14} />
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-500">Participants:</span>
+                        <div className="flex items-center gap-1.5 text-slate-700 font-medium">
+                            <Users size={13} />
                             <span>{participantCount}</span>
                         </div>
                     </div>
                 )}
             </div>
 
-            <div className="slot-footer">
+            {/* Footer */}
+            <div className="mt-auto flex gap-2">
                 {onJoin && (
                     <button
-                        className="btn btn-primary w-full"
+                        className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors cursor-pointer"
                         onClick={onJoin}
                         disabled={slot.booked || isJoined}
                     >
@@ -71,7 +76,11 @@ export function SlotCard({
                     </button>
                 )}
                 {onDelete && (
-                    <button className="btn btn-danger icon-btn" onClick={onDelete} title="Delete Slot">
+                    <button
+                        className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition-colors cursor-pointer"
+                        onClick={onDelete}
+                        title="Delete Slot"
+                    >
                         <Trash2 size={16} />
                     </button>
                 )}

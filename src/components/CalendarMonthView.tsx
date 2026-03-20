@@ -1,6 +1,4 @@
 import type { Availability } from "../types/Availability";
-import "./CalendarMonthView.css";
-
 import type { ReactNode } from "react";
 
 interface CalendarMonthViewProps {
@@ -15,32 +13,26 @@ function getMonthDates() {
     const year = today.getFullYear();
     const month = today.getMonth();
 
-    // Get the first day of the month
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
 
-    // Padding for Mon-Fri grid: find what weekday-column the 1st falls on (0=Mon..4=Fri)
-    const startDayOfWeek = firstDay.getDay(); // 0=Sun,1=Mon..6=Sat
-    // If Sunday skip to next Mon; otherwise offset from Monday
+    const startDayOfWeek = firstDay.getDay();
     const colOffset = startDayOfWeek === 0 ? 0 : startDayOfWeek === 6 ? 0 : startDayOfWeek - 1;
 
     const dates: (string | null)[] = [];
 
-    // Add empty slots for days before the 1st (within Mon-Fri grid)
     for (let i = 0; i < colOffset; i++) {
         dates.push(null);
     }
 
-    // Add days of current month, skipping weekends
     for (let i = 1; i <= lastDay.getDate(); i++) {
         const d = new Date(year, month, i);
         const dow = d.getDay();
-        if (dow === 0 || dow === 6) continue; // skip Sat & Sun
+        if (dow === 0 || dow === 6) continue;
         const tzOffset = d.getTimezoneOffset() * 60000;
         dates.push(new Date(d.getTime() - tzOffset).toISOString().split('T')[0]);
     }
 
-    // Pad trailing empty cells so each month renders full Mon-Fri rows.
     while (dates.length % 5 !== 0) {
         dates.push(null);
     }
@@ -58,34 +50,44 @@ export function CalendarMonthView({ slots, renderSlot }: CalendarMonthViewProps)
     })();
 
     return (
-        <div className="calendar-month-container glass-panel">
-            <div className="calendar-month-header-title">
-                {currentMonthName}
-            </div>
-            <div className="calendar-month-grid workdays">
+        <div className="bg-white/85 backdrop-blur-md border border-blue-100 rounded-2xl shadow-md shadow-blue-100/30 overflow-x-auto p-3">
+            <div className="text-base font-semibold text-center text-slate-700 mb-3">{currentMonthName}</div>
+
+            <div className="grid grid-cols-5 gap-0.5 border border-blue-100 rounded-lg overflow-hidden bg-blue-100">
+                {/* Day headers */}
                 {DAYS_OF_WEEK.map((day) => (
-                    <div key={day} className="calendar-month-day-header">
+                    <div key={day} className="bg-blue-50 px-2 py-1.5 text-center text-xs font-semibold uppercase tracking-wide text-blue-500">
                         {day}
                     </div>
                 ))}
 
+                {/* Date cells */}
                 {monthDates.map((dateStr, index) => {
                     if (!dateStr) {
-                        return <div key={`empty-${index}`} className="calendar-month-cell empty"></div>;
+                        return <div key={`empty-${index}`} className="bg-white/60 min-h-[90px]" />;
                     }
 
                     const dayNum = new Date(dateStr).getDate();
-
-                    // Get slots for this specific date
                     const daySlots = slots
                         .filter((s) => s.date === dateStr)
                         .sort((a, b) => a.start.localeCompare(b.start));
-
                     const isToday = dateStr === todayStr;
+
                     return (
-                        <div key={dateStr} className={`calendar-month-cell${isToday ? ' today' : ''}`}>
-                            <div className={`calendar-month-cell-header${isToday ? ' today' : ''}`}>{dayNum}</div>
-                            <div className="calendar-month-cell-body">
+                        <div
+                            key={dateStr}
+                            className={`bg-white min-h-[90px] p-1.5 flex flex-col ${isToday ? "outline outline-2 outline-blue-400 outline-offset-[-2px]" : ""}`}
+                        >
+                            <div className={`text-xs font-medium mb-1 flex ${isToday ? "justify-start" : "justify-end"}`}>
+                                {isToday ? (
+                                    <span className="w-5 h-5 flex items-center justify-center bg-blue-600 text-white rounded-full text-xs font-bold">
+                                        {dayNum}
+                                    </span>
+                                ) : (
+                                    <span className="text-slate-400">{dayNum}</span>
+                                )}
+                            </div>
+                            <div className="flex flex-col gap-0.5 flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-0.5 [&::-webkit-scrollbar-thumb]:bg-blue-200">
                                 {daySlots.map((slot) => (
                                     <div key={slot.id}>
                                         {renderSlot(slot)}

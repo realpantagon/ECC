@@ -25,13 +25,13 @@ export function ParticipantDashboard() {
     const [topic, setTopic] = useState("");
     const [toast, setToast] = useState<{ message: string; type: "success" | "info" } | null>(null);
 
-    if (!user) return null;
-
     useEffect(() => {
         if (!toast) return;
         const timeout = setTimeout(() => setToast(null), 2600);
         return () => clearTimeout(timeout);
     }, [toast]);
+
+    if (!user) return null;
 
     // Calculate start/end dates for week filtering
     const today = new Date();
@@ -156,6 +156,67 @@ export function ParticipantDashboard() {
 
     return (
         <div className="page-container">
+            <div style={{ marginBottom: '2rem' }}>
+                {/* <h2 style={{ marginBottom: '1rem' }}>{user.name} Details</h2> */}
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div className="glass-panel" style={{ flex: 1, padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Name</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>{user.name}</div>
+                    </div>
+                    <div className="glass-panel" style={{ flex: 1, padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Sessions</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>{myMeetings.length}/28</div>
+                    </div>
+                    <div className="glass-panel" style={{ flex: 1, padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Progress</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>{((myMeetings.length / 28) * 100).toFixed(2)}%</div>
+                    </div>
+                </div>
+                <div style={{ marginTop: '1rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Progress Bar</div>
+                    <div style={{ width: '100%', height: '8px', background: 'var(--surface-color)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: `${Math.min((myMeetings.length / 28) * 100, 100)}%`, height: '100%', background: 'var(--primary-color)', borderRadius: '4px' }}></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ marginBottom: '2rem' }}>
+                <h2 style={{ marginBottom: '1rem' }}>Session Table of Contents</h2>
+                <div className="glass-panel" style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                <th style={{ padding: '1rem', color: 'var(--primary-color)', fontWeight: 600 }}>Topic</th>
+                                <th style={{ padding: '1rem', color: 'var(--primary-color)', fontWeight: 600 }}>Date</th>
+                                <th style={{ padding: '1rem', color: 'var(--primary-color)', fontWeight: 600 }}>Buddy</th>
+                                <th style={{ padding: '1rem', color: 'var(--primary-color)', fontWeight: 600 }}>Participant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {myMeetings.map(m => {
+                                const buddy = users.find(u => u.id === m.buddyId);
+                                const participants = m.participants.map(pId => users.find(u => u.id === pId)?.name).join(", ");
+                                const slot = availabilities.find(a => a.id === m.availabilityId);
+                                
+                                return (
+                                    <tr key={m.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                        <td style={{ padding: '1rem' }}>"{m.topic || 'No topic'}"</td>
+                                        <td style={{ padding: '1rem' }}>{slot ? slot.date : 'Unknown date'}</td>
+                                        <td style={{ padding: '1rem' }}>{buddy?.name || 'Unassigned'}</td>
+                                        <td style={{ padding: '1rem' }}>{participants}</td>
+                                    </tr>
+                                );
+                            })}
+                            {myMeetings.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No sessions registered yet.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             {myMeetings.length > 0 && (
                 <div style={{ marginBottom: '1rem' }}>
                     <h2 style={{ marginBottom: '1.5rem' }}>My Meetings</h2>

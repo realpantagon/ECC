@@ -19,19 +19,19 @@ export function MeetingTable({ slots, buddies, participants, requests, onCreateM
 
     if (pendingRequests.length === 0) {
         return (
-            <div className="bg-white/85 border border-blue-100 rounded-2xl shadow-md shadow-blue-100/30 py-12 text-center text-slate-500 text-sm">
+            <div className="bg-white/85 border border-blue-100 rounded-xl shadow-md shadow-blue-100/30 py-6 text-center text-slate-500 text-sm">
                 No pending meeting requests at the moment.
             </div>
         );
     }
 
     return (
-        <div className="bg-white/85 border border-blue-100 rounded-2xl shadow-md shadow-blue-100/30 overflow-x-auto">
+        <div className="bg-white/85 border border-blue-100 rounded-xl shadow-md shadow-blue-100/30 overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse">
                 <thead>
                     <tr>
                         {["Time Slot", "Buddy", "Participant", "Topic / Note", "Action"].map(h => (
-                            <th key={h} className="px-5 py-3 bg-blue-50/60 text-blue-600 font-semibold text-sm border-b border-blue-100">
+                            <th key={h} className="px-3 py-2 bg-blue-50/60 text-blue-600 font-semibold text-sm border-b border-blue-100">
                                 {h}
                             </th>
                         ))}
@@ -46,25 +46,25 @@ export function MeetingTable({ slots, buddies, participants, requests, onCreateM
 
                         return (
                             <tr key={req.id} className="animate-fade-in border-b border-slate-100 last:border-0 hover:bg-blue-50/30">
-                                <td className="px-5 py-4 align-middle">
+                                <td className="px-3 py-2 align-middle">
                                     <div className="flex flex-col gap-0.5">
                                         <span className="font-semibold text-slate-800">{slotLabel}</span>
                                         <span className="text-xs text-slate-500">{slot.start} - {slot.end}</span>
                                     </div>
                                 </td>
-                                <td className="px-5 py-4 align-middle font-medium text-slate-800">{buddy?.name || "Unknown"}</td>
-                                <td className="px-5 py-4 align-middle">
+                                <td className="px-3 py-2 align-middle font-medium text-slate-800">{buddy?.name || "Unknown"}</td>
+                                <td className="px-3 py-2 align-middle">
                                     <div className="flex items-center gap-1.5 text-slate-600">
                                         <UsersIcon size={13} className="text-slate-400" />
                                         <span>{participant?.name || "Unknown"}</span>
                                     </div>
                                 </td>
-                                <td className="px-5 py-4 align-middle">
+                                <td className="px-3 py-2 align-middle">
                                     <div className="text-sm text-slate-500 max-w-[180px] truncate" title={req.topic}>
                                         {req.topic ? `"${req.topic}"` : <span className="italic opacity-50">No note</span>}
                                     </div>
                                 </td>
-                                <td className="px-5 py-4 align-middle">
+                                <td className="px-3 py-2 align-middle">
                                     <div className="flex items-center gap-2">
                                         <button
                                             className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer"

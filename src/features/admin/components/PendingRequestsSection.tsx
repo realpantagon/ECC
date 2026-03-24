@@ -21,8 +21,8 @@ export function PendingRequestsSection({
 }: PendingRequestsSectionProps) {
     return (
         <div className="animate-fade-in">
-            <h2 className="text-lg font-semibold text-slate-800 mb-1">Pending Meeting Requests</h2>
-            <p className="text-sm text-slate-500 mb-4">
+            <h2 className="text-sm font-semibold text-slate-800 mb-0.5">Pending Meeting Requests</h2>
+            <p className="text-xs text-slate-500 mb-2">
                 Match buddies with participants who have requested slots.
             </p>
             <MeetingTable

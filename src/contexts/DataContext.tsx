@@ -110,6 +110,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/rules-of-hooks, react-hooks/set-state-in-effect
     useEffect(() => {
         fetchData();
     }, []);
@@ -310,16 +311,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const meeting = meetings.find(m => m.id === meetingId);
         if (!meeting) return;
 
-        const { error } = await supabase.from('meetings').update({ status: 'canceled' }).eq('id', meetingId);
-        if (error) {
-            console.error("Error canceling meeting:", error);
+        // 1. Delete the meeting entirely to free up the unique constraint on availability_id
+        const { error: deleteMeetErr } = await supabase.from('meetings').delete().eq('id', meetingId);
+        if (deleteMeetErr) {
+            console.error("Error deleting meeting:", deleteMeetErr);
             return;
         }
 
-        // Unbook the availability slot so it becomes available again
+        // 2. Unbook the availability slot so it becomes available again
         await supabase.from('availabilities').update({ booked: false }).eq('id', meeting.availabilityId);
 
-        setMeetings(prev => prev.map(m => m.id === meetingId ? { ...m, status: 'canceled' } : m));
+        // 3. Delete the original slot requests for this availability so they don't reappear in the Pending queue
+        if (meeting.participants.length > 0) {
+            await supabase.from('slot_requests')
+                .delete()
+                .eq('availability_id', meeting.availabilityId)
+                .in('participant_id', meeting.participants);
+            
+            setRequests(prev => prev.filter(r => 
+                !(r.availabilityId === meeting.availabilityId && meeting.participants.includes(r.participantId))
+            ));
+        }
+
+        setMeetings(prev => prev.filter(m => m.id !== meetingId));
         setAvailabilities(prev => prev.map(a => a.id === meeting.availabilityId ? { ...a, booked: false } : a));
     };
 

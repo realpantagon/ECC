@@ -21,19 +21,19 @@ export function SessionReportTable({
 }: SessionReportTableProps) {
     if (meetings.length === 0) {
         return (
-            <div className="bg-white/85 border border-blue-100 rounded-2xl shadow-md py-12 text-center text-slate-400 text-sm">
+            <div className="bg-white/85 border border-blue-100 rounded-xl shadow-md py-6 text-center text-slate-400 text-sm">
                 {hasFilters ? 'No meetings match the selected filters.' : 'No meetings have been scheduled yet.'}
             </div>
         );
     }
 
     return (
-        <div className="bg-white/85 border border-blue-100 rounded-2xl shadow-md overflow-x-auto">
+        <div className="bg-white/85 border border-blue-100 rounded-xl shadow-md overflow-x-auto">
             <table className="w-full text-sm text-left border-collapse">
                 <thead>
                     <tr>
                         {["Date & Time", "Buddy", "Participant", "Topic / Note", "Status", "Actions"].map(h => (
-                            <th key={h} className="px-4 py-3 bg-blue-50/60 text-blue-600 font-semibold border-b border-blue-100">
+                            <th key={h} className="px-3 py-1.5 bg-blue-50/60 text-blue-600 font-semibold border-b border-blue-100">
                                 {h}
                             </th>
                         ))}
@@ -49,26 +49,26 @@ export function SessionReportTable({
                         const isCanceled = m.status === 'canceled';
                         return (
                             <tr key={m.id} className={`border-b border-slate-100 last:border-0 hover:bg-blue-50/20 ${isCanceled ? "opacity-50" : ""}`}>
-                                <td className="px-4 py-3">
+                                <td className="px-3 py-1.5">
                                     <div className="flex flex-col gap-0.5">
                                         <span className="font-semibold text-slate-800">{m.start.split(' ')[0]}</span>
                                         <span className="text-xs text-slate-400">{m.start.split(' ')[1]} - {m.end.split(' ')[1]}</span>
                                     </div>
                                 </td>
-                                <td className="px-4 py-3 font-medium text-slate-800">{buddy?.name}</td>
-                                <td className="px-4 py-3 text-slate-700">{partNames}</td>
-                                <td className="px-4 py-3">
+                                <td className="px-3 py-1.5 font-medium text-slate-800">{buddy?.name}</td>
+                                <td className="px-3 py-1.5 text-slate-700">{partNames}</td>
+                                <td className="px-3 py-1.5">
                                     <div className="text-xs text-slate-500 max-w-[140px] truncate" title={m.topic}>
                                         {m.topic ? `"${m.topic}"` : '-'}
                                     </div>
                                 </td>
-                                <td className="px-4 py-3">
+                                <td className="px-3 py-1.5">
                                     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold uppercase
                                         ${isCompleted ? "bg-emerald-50 text-emerald-700" : isCanceled ? "bg-red-50 text-red-500" : "bg-blue-50 text-blue-600"}`}>
                                         {m.status}
                                     </span>
                                 </td>
-                                <td className="px-4 py-3">
+                                <td className="px-3 py-1.5">
                                     {m.status === 'scheduled' && (
                                         <div className="flex gap-2">
                                             <button

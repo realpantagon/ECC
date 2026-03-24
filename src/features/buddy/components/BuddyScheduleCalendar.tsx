@@ -33,10 +33,15 @@ export function BuddyScheduleCalendar({
     const renderMonthSlot = (slot: Availability) => {
         const isMine = slot.buddyId === currentUserId;
         const buddyName = isMine ? 'Me' : (users.find(u => u.id === slot.buddyId)?.name || 'Unknown');
+        // Own booked = purple | Own available = green | Others = blue
+        const colorClass = !isMine
+            ? "bg-blue-50 border border-blue-100 text-blue-300"
+            : slot.booked
+                ? "bg-purple-50 border border-purple-300 text-purple-700 hover:bg-purple-100"
+                : "bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-emerald-100";
         return (
             <div
-                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.65rem] font-medium whitespace-nowrap cursor-pointer transition-all
-                    ${slot.booked ? "bg-emerald-50 border border-emerald-300 text-emerald-700" : isMine ? "bg-blue-50 border border-blue-300 text-blue-600 hover:bg-blue-100" : "bg-slate-50 border border-slate-200 text-slate-500"}`}
+                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.65rem] font-medium whitespace-nowrap transition-all ${colorClass}`}
                 title={`${slot.start} - ${slot.end} (${buddyName})`}
                 onClick={() => isMine && onSelectOwnSlot(slot.id)}
                 style={{ cursor: isMine ? 'pointer' : 'default' }}
@@ -50,12 +55,18 @@ export function BuddyScheduleCalendar({
     const renderWeekSlot = (slot: Availability) => {
         const isMine = slot.buddyId === currentUserId;
         const buddyName = isMine ? 'Me' : (users.find(u => u.id === slot.buddyId)?.name || 'Unknown');
+        // Own booked = purple | Own available = green | Others = blue
+        const cardClass = !isMine
+            ? "bg-blue-50 border border-blue-200 opacity-75"
+            : slot.booked
+                ? "bg-purple-50 border border-purple-200 shadow-sm"
+                : "bg-emerald-50 border border-emerald-200 shadow-sm";
+        const labelColor = !isMine ? "text-blue-400" : slot.booked ? "text-purple-500" : "text-emerald-600";
+        const nameColor = !isMine ? "text-blue-400" : slot.booked ? "text-purple-600" : "text-emerald-600";
         return (
             <div
-                className={`relative text-xs rounded-md p-1.5 flex flex-col gap-0.5 transition-all cursor-default group
-                    ${isMine ? "bg-blue-50 border border-blue-200 shadow-sm" : "bg-slate-50 border border-slate-200 opacity-75"}
-                    ${slot.booked ? "bg-emerald-50 border border-emerald-200" : ""}`}
-                style={{ opacity: isMine ? 1 : 0.72, cursor: isMine ? 'pointer' : 'default' }}
+                className={`relative text-xs rounded-md p-1.5 flex flex-col gap-0.5 transition-all group ${cardClass}`}
+                style={{ cursor: isMine ? 'pointer' : 'default' }}
                 onClick={() => isMine && onSelectOwnSlot(slot.id)}
             >
                 <div className="flex items-center gap-1 font-medium text-slate-700">
@@ -63,9 +74,12 @@ export function BuddyScheduleCalendar({
                     <span className="hidden sm:inline">{slot.start} - {slot.end}</span>
                     <span className="sm:hidden">{slot.start}</span>
                 </div>
-                {isMine && <div className="text-[0.6rem] font-bold text-blue-500 uppercase">My Slot</div>}
-                <div className={`text-[0.6rem] ${isMine ? "text-blue-600" : "text-slate-400"}`}>{buddyName}</div>
-                {slot.booked && <div className="text-[0.6rem] font-bold text-emerald-600 uppercase">Booked</div>}
+                {isMine && (
+                    <div className={`text-[0.6rem] font-bold uppercase ${labelColor}`}>
+                        {slot.booked ? 'Booked' : 'My Slot'}
+                    </div>
+                )}
+                <div className={`text-[0.6rem] ${nameColor}`}>{buddyName}</div>
                 {isMine && !slot.booked && (
                     <button
                         className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center rounded bg-red-50 text-red-400 hover:bg-red-100 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
@@ -81,7 +95,14 @@ export function BuddyScheduleCalendar({
     return (
         <div>
             <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
-                <h2 className="text-lg font-semibold text-slate-800">My Schedule</h2>
+                <div className="flex flex-col gap-2">
+                    <h2 className="text-lg font-semibold text-slate-800">My Schedule</h2>
+                    <div className="flex gap-4 text-[0.65rem] font-medium text-slate-500">
+                        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-400"></div> My Available Slot</div>
+                        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-purple-400"></div> My Booked Slot</div>
+                        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-400" style={{ opacity: 0.75 }}></div> Other Buddy's Slot</div>
+                    </div>
+                </div>
                 <div className="flex items-center gap-2 flex-wrap">
                     {viewMode === 'calendar' && (
                         <div className="flex gap-1 bg-emerald-50 border border-emerald-100 p-1 rounded-lg">

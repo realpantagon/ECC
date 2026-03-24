@@ -13,7 +13,7 @@ export function MeetingCards({ myMeetings, users }: MeetingCardsProps) {
     return (
         <div>
             <SectionHeader title="My Meetings" />
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-2">
                 {myMeetings.map(meeting => {
                     const buddy = users.find(u => u.id === meeting.buddyId);
                     const isCanceled = meeting.status === 'canceled';
@@ -26,7 +26,7 @@ export function MeetingCards({ myMeetings, users }: MeetingCardsProps) {
                     const icon = isCanceled ? '✕' : '✓';
 
                     return (
-                        <div key={meeting.id} className={`bg-white/85 border border-blue-100 border-l-4 ${borderColor} rounded-2xl shadow-md p-5 animate-fade-in flex flex-col gap-3 ${isCanceled ? "opacity-75" : ""}`}>
+                        <div key={meeting.id} className={`bg-white/85 border border-blue-100 border-l-4 ${borderColor} rounded-xl shadow-md p-3 animate-fade-in flex flex-col gap-2 ${isCanceled ? "opacity-75" : ""}`}>
                             <div className="font-semibold text-slate-800">{meeting.start} - {meeting.end}</div>
                             <div className="flex flex-col gap-1 text-sm mb-3">
                                 <div><span className="text-slate-500">Buddy:</span> {buddy?.name || 'Assigned'}</div>

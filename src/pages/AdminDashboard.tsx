@@ -22,12 +22,14 @@ import { SessionReportTable } from "../features/admin/components/SessionReportTa
 import { CompleteMeetingModal } from "../features/admin/components/CompleteMeetingModal";
 import { CancelMeetingModal } from "../features/admin/components/CancelMeetingModal";
 import { CancelRequestModal } from "../features/admin/components/CancelRequestModal";
+import { SlotDetailModal } from "../features/buddy/components/SlotDetailModal";
 
 export function AdminDashboard() {
     const { user } = useAuth();
     const { availabilities, users, requests, meetings, sessionLogs } = useData();
     const [adminTab, setAdminTab] = useState<"overview" | "participants" | "report">("overview");
     const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
+    const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
 
     // Filter users
     const buddies = users.filter((u) => u.role === "buddy");
@@ -60,7 +62,13 @@ export function AdminDashboard() {
                         onCreateMeeting={meetingActions.handleCreateMeeting}
                         onCancelRequest={meetingActions.handleCancelRequestClick}
                     />
-                    <BuddyCalendarSection availabilities={availabilities} buddies={buddies} />
+                    <BuddyCalendarSection 
+                        availabilities={availabilities} 
+                        buddies={buddies} 
+                        onSlotClick={(slot) => {
+                            if (slot.booked) setSelectedSlotId(slot.id);
+                        }} 
+                    />
                     <BuddyStatsChart stats={buddyStats} />
                 </>
             )}
@@ -123,6 +131,35 @@ export function AdminDashboard() {
                         buddies={buddies}
                         participants={participants}
                         onClose={() => setSelectedParticipantId(null)}
+                    />
+                );
+            })()}
+
+            {selectedSlotId && (() => {
+                const slot = availabilities.find(a => a.id === selectedSlotId);
+                if (!slot) return null;
+
+                let matchedParticipantName;
+                let meetingTopic;
+
+                if (slot.booked) {
+                    const meeting = meetings.find(m => m.availabilityId === slot.id && m.status !== 'canceled');
+                    if (meeting) {
+                        const participantId = meeting.participants[0];
+                        const participant = users.find(u => u.id === participantId);
+                        matchedParticipantName = participant?.name || 'Unknown Participant';
+                        meetingTopic = meeting.topic;
+                    } else {
+                        matchedParticipantName = 'Waiting for Match';
+                    }
+                }
+
+                return (
+                    <SlotDetailModal
+                        slot={slot}
+                        matchedParticipantName={matchedParticipantName}
+                        meetingTopic={meetingTopic}
+                        onClose={() => setSelectedSlotId(null)}
                     />
                 );
             })()}

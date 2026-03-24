@@ -34,7 +34,7 @@ export function ParticipantDetailModal({
             onClick={onClose}
         >
             <div
-                className="relative bg-white/95 backdrop-blur-md border border-blue-100 rounded-2xl shadow-2xl w-full max-w-2xl p-6 animate-fade-in max-h-[88vh] overflow-y-auto"
+                className="relative bg-white/95 backdrop-blur-md border border-blue-100 rounded-xl shadow-2xl w-full max-w-2xl p-4 animate-fade-in max-h-[88vh] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
             >
                 <button
@@ -45,16 +45,16 @@ export function ParticipantDetailModal({
                     <X size={20} />
                 </button>
 
-                <h2 className="text-lg font-semibold text-slate-800 mb-4">{participant.name} Details</h2>
+                <h2 className="text-base font-semibold text-slate-800 mb-3">{participant.name} Details</h2>
 
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="grid grid-cols-3 gap-2 mb-3">
                     {[
                         { label: "Name", value: participant.name },
                         { label: "Sessions", value: `${completedSessions}/${TOTAL_WEEKS}` },
                         { label: "Progress", value: `${progress}%` },
                     ].map(s => (
-                        <div key={s.label} className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                        <div key={s.label} className="bg-blue-50 border border-blue-100 rounded-lg p-2">
                             <div className="text-xs text-slate-400 mb-0.5">{s.label}</div>
                             <div className="font-bold text-slate-800">{s.value}</div>
                         </div>
@@ -62,12 +62,12 @@ export function ParticipantDetailModal({
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mb-5">
+                <div className="mb-3">
                     <div className="text-xs text-slate-400 mb-1">Progress Bar</div>
                     <ProgressBar value={progress} colorClass={barColor} />
                 </div>
 
-                <h3 className="font-semibold text-slate-700 mb-3 text-sm">Session Table of Contents</h3>
+                <h3 className="font-semibold text-slate-700 mb-2 text-xs uppercase tracking-wide">Session Table of Contents</h3>
 
                 {participantMeetings.length === 0 ? (
                     <div className="italic text-slate-400 text-sm text-center py-4">
@@ -79,7 +79,7 @@ export function ParticipantDetailModal({
                             <thead>
                                 <tr>
                                     {["Topic", "Date", "Buddy", "Participant"].map(h => (
-                                        <th key={h} className="px-3 py-2.5 text-blue-600 font-semibold bg-blue-50/60 border-b border-blue-100 text-left">
+                                        <th key={h} className="px-2.5 py-1.5 text-blue-600 font-semibold bg-blue-50/60 border-b border-blue-100 text-left">
                                             {h}
                                         </th>
                                     ))}
@@ -91,12 +91,12 @@ export function ParticipantDetailModal({
                                     const pNames = m.participants.map(pid => participants.find(p => p.id === pid)?.name || "Unknown").join(", ");
                                     return (
                                         <tr key={m.id} className={`border-b border-slate-100 last:border-0 ${m.status === 'canceled' ? "opacity-50" : ""}`}>
-                                            <td className="px-3 py-2.5">
+                                            <td className="px-2.5 py-1.5">
                                                 {m.topic ? `"${m.topic}"` : <span className="text-slate-400">-</span>}
                                             </td>
-                                            <td className="px-3 py-2.5 text-slate-500">{m.start.split(' ')[0]}</td>
-                                            <td className="px-3 py-2.5 text-slate-600">{buddy?.name || "Unknown"}</td>
-                                            <td className="px-3 py-2.5 text-slate-600">{pNames}</td>
+                                            <td className="px-2.5 py-1.5 text-slate-500">{m.start.split(' ')[0]}</td>
+                                            <td className="px-2.5 py-1.5 text-slate-600">{buddy?.name || "Unknown"}</td>
+                                            <td className="px-2.5 py-1.5 text-slate-600">{pNames}</td>
                                         </tr>
                                     );
                                 })}

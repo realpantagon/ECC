@@ -10,9 +10,7 @@ import { Toast } from "../shared/components/Toast";
 
 export function BuddyDashboard() {
     const { user } = useAuth();
-    const { users, availabilities } = useData();
-
-    if (!user) return null;
+    const { users, availabilities, meetings } = useData();
 
     const {
         formState,
@@ -21,6 +19,8 @@ export function BuddyDashboard() {
         allBuddySlots,
         toast
     } = useBuddySchedule();
+
+    if (!user) return null;
 
     const handleAddSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -68,9 +68,27 @@ export function BuddyDashboard() {
             {modalState.selectedOwnSlotId && (() => {
                 const slot = availabilities.find(a => a.id === modalState.selectedOwnSlotId);
                 if (!slot) return null;
+
+                let matchedParticipantName;
+                let meetingTopic;
+
+                if (slot.booked) {
+                    const meeting = meetings.find(m => m.availabilityId === slot.id && m.status !== 'canceled');
+                    if (meeting) {
+                        const participantId = meeting.participants[0];
+                        const participant = users.find(u => u.id === participantId);
+                        matchedParticipantName = participant?.name || 'Unknown Participant';
+                        meetingTopic = meeting.topic;
+                    } else {
+                        matchedParticipantName = 'Waiting for Match';
+                    }
+                }
+
                 return (
                     <SlotDetailModal
                         slot={slot}
+                        matchedParticipantName={matchedParticipantName}
+                        meetingTopic={meetingTopic}
                         onClose={() => modalState.setSelectedOwnSlotId(null)}
                         onDeleteRequest={() => {
                             modalState.setSelectedOwnSlotId(null);

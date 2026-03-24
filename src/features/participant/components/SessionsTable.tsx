@@ -22,7 +22,7 @@ export function SessionsTable({ myMeetings, users, availabilities }: SessionsTab
                         <thead>
                             <tr className="border-b border-blue-100">
                                 {["Topic", "Date", "Buddy", "Participant"].map(h => (
-                                    <th key={h} className="px-4 py-3 text-blue-600 font-semibold text-sm bg-blue-50/60">
+                                    <th key={h} className="px-3 py-1.5 text-blue-600 font-semibold text-sm bg-blue-50/60">
                                         {h}
                                     </th>
                                 ))}
@@ -36,12 +36,12 @@ export function SessionsTable({ myMeetings, users, availabilities }: SessionsTab
 
                                 return (
                                     <tr key={m.id} className="border-b border-slate-100 last:border-0 hover:bg-blue-50/20">
-                                        <td className="px-4 py-3 max-w-[200px] truncate" title={m.topic}>
+                                        <td className="px-3 py-1.5 max-w-[200px] truncate" title={m.topic}>
                                             {m.topic ? `"${m.topic}"` : 'No topic'}
                                         </td>
-                                        <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{slot?.date || 'Unknown'}</td>
-                                        <td className="px-4 py-3 text-slate-600">{buddy?.name || 'Unassigned'}</td>
-                                        <td className="px-4 py-3 text-slate-600">{parts}</td>
+                                        <td className="px-3 py-1.5 text-slate-600 whitespace-nowrap">{slot?.date || 'Unknown'}</td>
+                                        <td className="px-3 py-1.5 text-slate-600">{buddy?.name || 'Unassigned'}</td>
+                                        <td className="px-3 py-1.5 text-slate-600">{parts}</td>
                                     </tr>
                                 );
                             })}

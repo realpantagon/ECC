@@ -24,10 +24,10 @@ export function ReportFilterBar({
     participants,
 }: ReportFilterBarProps) {
     return (
-        <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
-            <h2 className="text-lg font-semibold text-slate-800">Session Report</h2>
+        <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
+            <h2 className="text-sm font-semibold text-slate-800">Session Report</h2>
             <div className="flex items-center gap-2 flex-wrap">
-                <div className="bg-white/85 border border-blue-100 rounded-xl shadow-sm px-4 py-2 flex gap-2 flex-wrap items-center">
+                <div className="bg-white/85 border border-blue-100 rounded-lg shadow-sm px-3 py-1 flex gap-2 flex-wrap items-center">
                     <Filter size={14} className="text-slate-400" />
                     <input
                         type="date"

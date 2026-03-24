@@ -14,7 +14,7 @@ export function ParticipantStats({ name, completedCount }: ParticipantStatsProps
 
     return (
         <div>
-            <div className="flex gap-3 flex-wrap mb-3">
+            <div className="flex gap-2 flex-wrap mb-2">
                 <StatCard label="Name" value={name} />
                 <StatCard label="Sessions" value={`${completedCount}/${TOTAL_WEEKS}`} />
                 <StatCard label="Progress" value={`${pct.toFixed(2)}%`} valueClass={pct >= 93 ? 'text-emerald-600' : 'text-blue-600'} />

@@ -14,7 +14,7 @@ export function getAttendanceStatus(pct: number, completed: number): string {
     if (pct >= 93) return 'Hit Target';
     if (pct >= 80) return 'Good';
     if (pct >= 50) return 'Needs Improvement';
-    if (completed > 0) return 'At Risk';
+    if (completed > 0) return 'Low';
     return 'No Sessions';
 }
 
@@ -44,7 +44,7 @@ export function getStatusBadgeLabel(pct: number, completed: number): string {
     if (pct >= 93) return '🎯 Hit Target';
     if (pct >= 80) return 'Good';
     if (pct >= 50) return '⚠ Needs Improvement';
-    if (completed > 0) return 'At Risk';
+    if (completed > 0) return 'Low';
     return '';
 }
 

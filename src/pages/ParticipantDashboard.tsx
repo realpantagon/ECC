@@ -66,8 +66,8 @@ export function ParticipantDashboard() {
                 <ConfirmRequestModal
                     selectedSlots={slotsCtx.selectedSlots}
                     availabilities={availabilities}
-                    topic={modalState.topic}
-                    setTopic={modalState.setTopic}
+                    topics={modalState.topics}
+                    setTopics={modalState.setTopics}
                     onConfirm={modalState.handleConfirmSelection}
                     onClose={() => modalState.setIsConfirmModalOpen(false)}
                 />

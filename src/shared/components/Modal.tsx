@@ -17,7 +17,7 @@ export function Modal({ children, onClose, maxWidth = "max-w-md" }: ModalProps) 
             onClick={onClose}
         >
             <div
-                className={`relative bg-white/95 backdrop-blur-md border border-blue-100 rounded-2xl shadow-2xl w-full ${maxWidth} p-6 animate-fade-in`}
+                className={`relative bg-white/95 backdrop-blur-md border border-blue-100 rounded-xl shadow-2xl w-full ${maxWidth} p-4 animate-fade-in`}
                 onClick={e => e.stopPropagation()}
             >
                 <button

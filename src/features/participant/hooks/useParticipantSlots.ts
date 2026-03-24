@@ -13,7 +13,7 @@ export function useParticipantSlots() {
     const [viewMode, setViewMode] = useState<"month" | "calendar">("month");
     const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-    const [topic, setTopic] = useState("");
+    const [topics, setTopics] = useState<Record<string, string>>({});
 
     if (!user) throw new Error("Participant hooks require user");
 
@@ -95,17 +95,28 @@ export function useParticipantSlots() {
             if (reservedCount + selectedCount >= 3) return; // limit 3 slots per week
         }
 
-        setSelectedSlots(prev => prev.includes(slotId) ? prev.filter(id => id !== slotId) : [...prev, slotId]);
+        setSelectedSlots(prev => {
+            if (prev.includes(slotId)) {
+                setTopics(t => {
+                    const newT = { ...t };
+                    delete newT[slotId];
+                    return newT;
+                });
+                return prev.filter(id => id !== slotId);
+            }
+            return [...prev, slotId];
+        });
     };
 
     const handleConfirmSelection = async () => {
-        if (!topic.trim()) {
-            showToast("Topic is required before sending requests", "info");
+        const missingTopics = selectedSlots.some(id => !topics[id]?.trim());
+        if (missingTopics) {
+            showToast("Topic is required for each session", "info");
             return;
         }
-        await Promise.all(selectedSlots.map(slotId => requestSlot(user.id, slotId, topic.trim())));
+        await Promise.all(selectedSlots.map(slotId => requestSlot(user.id, slotId, topics[slotId].trim())));
         setSelectedSlots([]);
-        setTopic("");
+        setTopics({});
         setIsConfirmModalOpen(false);
         showToast("Reservation request sent", "success");
     };
@@ -114,7 +125,7 @@ export function useParticipantSlots() {
         mySettings: { weekFilter, setWeekFilter, viewMode, setViewMode },
         slotsCtx: { visibleSlots, weeklySlots, pendingRequests, activeMeetings, reservedCountByWeek, selectedCountByWeek, selectedSlots },
         handleToggleSlot,
-        modalState: { isConfirmModalOpen, setIsConfirmModalOpen, topic, setTopic, handleConfirmSelection },
+        modalState: { isConfirmModalOpen, setIsConfirmModalOpen, topics, setTopics, handleConfirmSelection },
         toast,
         myMeetings,
     };

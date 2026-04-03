@@ -1,10 +1,21 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { LogOut } from "lucide-react";
+
+type DashboardView = "admin" | "buddy" | "participant";
+
+function resolveAdminDashboardView(rawView: string | null): DashboardView {
+    if (rawView === "admin" || rawView === "buddy" || rawView === "participant") {
+        return rawView;
+    }
+
+    return "admin";
+}
 
 export function Navbar() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const handleLogout = () => {
         logout();
@@ -17,12 +28,55 @@ export function Navbar() {
         participant: "bg-emerald-100 text-emerald-600",
     };
 
+    const activeAdminView = resolveAdminDashboardView(searchParams.get("view"));
+
+    const handleSelectAdminView = (view: DashboardView) => {
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.set("view", view);
+        setSearchParams(nextParams);
+    };
+
+    const navBtn = (active: boolean) =>
+        `px-2 py-0.5 rounded-md text-[0.65rem] font-semibold transition-colors ${
+            active
+                ? "bg-blue-600 text-white"
+                : "text-blue-600 hover:bg-blue-50"
+        }`;
+
     return (
         <nav className="sticky top-2 z-50 mx-2 mb-2 rounded-xl bg-white/85 backdrop-blur-md border border-blue-100 shadow-md shadow-blue-100/30">
             <div className="max-w-6xl mx-auto px-3 h-9 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-blue-600 font-bold text-sm">
+                <div className="flex items-center gap-3 text-blue-600 font-bold text-sm">
+                    <div className="flex items-center gap-1.5">
                     <img src="/ecc.png" alt="ATS ECC" className="w-5 h-5 object-contain rounded" />
                     <span>ATS ECC</span>
+                    </div>
+
+                    {user?.role === "admin" && (
+                        <div className="flex items-center gap-1 border border-blue-100 bg-blue-50/70 rounded-lg p-0.5">
+                            <button
+                                type="button"
+                                onClick={() => handleSelectAdminView("admin")}
+                                className={navBtn(activeAdminView === "admin")}
+                            >
+                                Admin
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleSelectAdminView("buddy")}
+                                className={navBtn(activeAdminView === "buddy")}
+                            >
+                                Buddy
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleSelectAdminView("participant")}
+                                className={navBtn(activeAdminView === "participant")}
+                            >
+                                Participant
+                            </button>
+                        </div>
+                    )}
                 </div>
                 {user && (
                     <div className="flex items-center gap-3">

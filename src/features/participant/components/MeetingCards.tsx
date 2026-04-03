@@ -35,7 +35,7 @@ export function MeetingCards({ myMeetings, users }: MeetingCardsProps) {
     return (
         <div>
             <SectionHeader title="My Meetings" />
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
                 {myMeetings.map(meeting => {
                     const buddy = users.find(u => u.id === meeting.buddyId);
                     const isCanceled = meeting.status === 'canceled';
@@ -49,7 +49,7 @@ export function MeetingCards({ myMeetings, users }: MeetingCardsProps) {
                     const timeLabel = `${getTimePart(meeting.start)} - ${getTimePart(meeting.end)}`;
 
                     return (
-                        <div key={meeting.id} className={`bg-white/90 border border-blue-100 border-l-[3px] ${borderColor} rounded-lg shadow-sm p-2.5 animate-fade-in flex flex-col gap-1.5 ${isCanceled ? "opacity-75" : ""}`}>
+                        <div key={meeting.id} className={`min-w-[220px] max-w-[240px] shrink-0 snap-start bg-white/90 border border-blue-100 border-l-[3px] ${borderColor} rounded-lg shadow-sm p-2.5 animate-fade-in flex flex-col gap-1.5 ${isCanceled ? "opacity-75" : ""}`}>
                             <div className="flex flex-col gap-1">
                                 <div className="font-semibold text-[0.82rem] text-slate-800">{dateLabel}</div>
                                 <span className="inline-flex w-fit items-center gap-0.5 text-[0.66rem] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">

@@ -2,6 +2,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useData } from "../hooks/useData";
 import { useBuddySchedule } from "../features/buddy/hooks/useBuddySchedule";
 import { AvailabilityForm } from "../features/buddy/components/AvailabilityForm";
+import { BuddySlotStatusCards } from "../features/buddy/components/BuddySlotStatusCards";
 import { BuddyScheduleCalendar } from "../features/buddy/components/BuddyScheduleCalendar";
 import { AddSlotConfirmModal } from "../features/buddy/components/AddSlotConfirmModal";
 import { SlotDetailModal } from "../features/buddy/components/SlotDetailModal";
@@ -43,6 +44,13 @@ export function BuddyDashboard() {
                 onAddSubmit={handleAddSubmit}
             />
 
+            <BuddySlotStatusCards
+                slots={allBuddySlots}
+                meetings={meetings}
+                users={users}
+                currentUserId={user.id}
+            />
+
             <BuddyScheduleCalendar
                 slots={allBuddySlots}
                 users={users}
@@ -51,6 +59,8 @@ export function BuddyDashboard() {
                 setViewMode={viewState.setViewMode}
                 weekOffset={viewState.weekOffset}
                 setWeekOffset={viewState.setWeekOffset}
+                monthOffset={viewState.monthOffset}
+                setMonthOffset={viewState.setMonthOffset}
                 onSelectOwnSlot={modalState.setSelectedOwnSlotId}
                 onDeleteSlot={handleDeleteRequest}
             />

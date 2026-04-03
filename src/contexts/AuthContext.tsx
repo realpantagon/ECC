@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 
 export interface AuthContextType {
     user: User | null;
-    login: (name: string, role: Role) => Promise<void>;
+    login: (empId: string, empCode: string, role: Role) => Promise<boolean>;
     logout: () => void;
 }
 
@@ -24,13 +24,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [user]);
 
-    const login = async (name: string, role: Role) => {
+    const login = async (empId: string, empCode: string, role: Role) => {
         try {
-            // Find existing user
+            // Authenticate with employee credentials and expected role.
             const { data: existingUser, error: fetchError } = await supabase
                 .from('users')
                 .select('*')
-                .ilike('name', name)
+                .eq('emp_id', empId)
+                .eq('emp_code', empCode)
                 .eq('role', role)
                 .single();
 
@@ -42,34 +43,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (existingUser) {
                 setUser({
                     id: existingUser.id,
-                    name: existingUser.name,
+                    name: existingUser.name || existingUser.emp_id,
                     role: existingUser.role as Role
                 });
-                return;
+                return true;
             }
 
-            // Create new user if not found
-            const { data: newUser, error: insertError } = await supabase
-                .from('users')
-                .insert([{ name, role }])
-                .select()
-                .single();
-
-            if (insertError) {
-                console.error("Error creating user:", insertError);
-                throw insertError;
-            }
-
-            if (newUser) {
-                setUser({
-                    id: newUser.id,
-                    name: newUser.name,
-                    role: newUser.role as Role
-                });
-            }
+            alert("Invalid employee ID, code, or role URL.");
+            return false;
         } catch (error) {
             console.error("Login failed:", error);
             alert("Login failed. Please try again.");
+            return false;
         }
     };
 

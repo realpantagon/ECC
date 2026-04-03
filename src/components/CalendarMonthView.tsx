@@ -4,14 +4,15 @@ import type { ReactNode } from "react";
 interface CalendarMonthViewProps {
     slots: Availability[];
     renderSlot: (slot: Availability) => ReactNode;
+    monthOffset?: 0 | 1;
 }
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 
-function getMonthDates() {
+function getMonthDates(monthOffset = 0) {
     const today = new Date();
     const year = today.getFullYear();
-    const month = today.getMonth();
+    const month = today.getMonth() + monthOffset;
 
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
@@ -40,9 +41,10 @@ function getMonthDates() {
     return dates;
 }
 
-export function CalendarMonthView({ slots, renderSlot }: CalendarMonthViewProps) {
-    const monthDates = getMonthDates();
-    const currentMonthName = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+export function CalendarMonthView({ slots, renderSlot, monthOffset = 0 }: CalendarMonthViewProps) {
+    const monthDates = getMonthDates(monthOffset);
+    const viewMonthDate = new Date(new Date().getFullYear(), new Date().getMonth() + monthOffset, 1);
+    const currentMonthName = viewMonthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     const todayStr = (() => {
         const d = new Date();
         const tzOffset = d.getTimezoneOffset() * 60000;

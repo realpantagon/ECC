@@ -29,6 +29,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/login/:roleParam" element={<LoginPage />} />
       <Route path="/*" element={<DashboardRouter />} />
     </Routes>
   );

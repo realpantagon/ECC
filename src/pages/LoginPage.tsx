@@ -1,19 +1,27 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import type { Role } from "../types/User";
-import { useNavigate } from "react-router-dom";
-import { UserCircle2, ChevronDown } from "lucide-react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { UserCircle2, KeyRound, Eye, EyeOff } from "lucide-react";
+import { resolveLoginRole, resolveLoginRoleFromRaw } from "../shared/utils/loginRoleResolver";
 
 export function LoginPage() {
-    const [name, setName] = useState("");
-    const [role, setRole] = useState<Role>("participant");
+    const [empId, setEmpId] = useState("");
+    const [empCode, setEmpCode] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
+    const { roleParam } = useParams();
+    const [searchParams] = useSearchParams();
+    const queryRole = resolveLoginRole(searchParams);
+    const loginRole = roleParam ? resolveLoginRoleFromRaw(roleParam) : queryRole;
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (name.trim()) {
-            await login(name.trim(), role);
+        if (empId.trim() && empCode.trim()) {
+            const isSuccess = await login(empId.trim(), empCode.trim(), loginRole);
+            if (!isSuccess) {
+                return;
+            }
             navigate("/");
         }
     };
@@ -25,41 +33,52 @@ export function LoginPage() {
                 <div className="flex flex-col items-center gap-2 text-center">
                     <img src="/ecc.png" alt="ATS ECC" className="w-16 h-16 object-contain rounded-2xl mb-1" />
                     <h1 className="text-2xl font-bold text-slate-800 tracking-tight">ATS ECC</h1>
-                    <p className="text-sm text-slate-500">ATS English Chit Chat — Schedule your sessions</p>
+                    <p className="text-sm text-slate-500">ATS English Chit Chat - Schedule your sessions</p>
+                    {/* <span className="mt-1 text-xs font-semibold uppercase tracking-wide text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1">
+                        Login as {loginRole}
+                    </span> */}
                 </div>
 
                 {/* Form */}
                 <form onSubmit={handleLogin} className="flex flex-col gap-4">
-                    {/* Name */}
+                    {/* Employee ID */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-medium text-slate-600">Your Name</label>
+                        <label className="text-sm font-medium text-slate-600">Username</label>
+                        {/* <label className="text-sm font-medium text-slate-600">Employee ID (emp_id)</label> */}
                         <div className="relative flex items-center">
                             <UserCircle2 className="absolute left-3 text-slate-400 pointer-events-none" size={18} />
                             <input
                                 type="text"
                                 className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
-                                placeholder="Enter your name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Alex.A"
+                                value={empId}
+                                onChange={(e) => setEmpId(e.target.value)}
                                 required
                             />
                         </div>
                     </div>
 
-                    {/* Role */}
+                    {/* Employee Code */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-medium text-slate-600">Select Role</label>
+                        <label className="text-sm font-medium text-slate-600">Employee ID</label>
                         <div className="relative flex items-center">
-                            <select
-                                className="w-full appearance-none px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition cursor-pointer pr-9"
-                                value={role}
-                                onChange={(e) => setRole(e.target.value as Role)}
+                            <KeyRound className="absolute left-3 text-slate-400 pointer-events-none" size={16} />
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
+                                placeholder="9876"
+                                value={empCode}
+                                onChange={(e) => setEmpCode(e.target.value)}
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((v) => !v)}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                className="absolute right-3 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                             >
-                                <option value="participant">Participant</option>
-                                <option value="buddy">Buddy</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                            <ChevronDown className="absolute right-3 text-slate-400 pointer-events-none" size={16} />
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
                         </div>
                     </div>
 

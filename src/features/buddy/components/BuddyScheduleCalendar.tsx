@@ -12,6 +12,8 @@ interface BuddyScheduleCalendarProps {
     setViewMode: (v: "month" | "calendar") => void;
     weekOffset: 0 | 1;
     setWeekOffset: (v: 0 | 1) => void;
+    monthOffset: 0 | 1;
+    setMonthOffset: (v: 0 | 1) => void;
     onSelectOwnSlot: (id: string) => void;
     onDeleteSlot: (e: React.MouseEvent, id: string) => void;
 }
@@ -24,6 +26,8 @@ export function BuddyScheduleCalendar({
     setViewMode,
     weekOffset,
     setWeekOffset,
+    monthOffset,
+    setMonthOffset,
     onSelectOwnSlot,
     onDeleteSlot,
 }: BuddyScheduleCalendarProps) {
@@ -104,6 +108,12 @@ export function BuddyScheduleCalendar({
                     </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
+                    {viewMode === 'month' && (
+                        <div className="flex gap-1 bg-amber-50 border border-amber-100 p-1 rounded-lg">
+                            <button onClick={() => setMonthOffset(0)} className={toggleBtn(monthOffset === 0)}>This Month</button>
+                            <button onClick={() => setMonthOffset(1)} className={toggleBtn(monthOffset === 1)}>Next Month</button>
+                        </div>
+                    )}
                     {viewMode === 'calendar' && (
                         <div className="flex gap-1 bg-emerald-50 border border-emerald-100 p-1 rounded-lg">
                             <button onClick={() => setWeekOffset(0)} className={toggleBtn(weekOffset === 0)}>This Week</button>
@@ -126,7 +136,7 @@ export function BuddyScheduleCalendar({
                     No availability slots have been added yet.
                 </div>
             ) : viewMode === "month" ? (
-                <CalendarMonthView slots={slots} renderSlot={renderMonthSlot} />
+                <CalendarMonthView slots={slots} renderSlot={renderMonthSlot} monthOffset={monthOffset} />
             ) : (
                 <CalendarWeeklyView slots={slots} weekOffset={weekOffset} renderSlot={renderWeekSlot} />
             )}

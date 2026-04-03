@@ -13,6 +13,7 @@ export function useBuddySchedule() {
 
     const [viewMode, setViewMode] = useState<"month" | "calendar">("month");
     const [weekOffset, setWeekOffset] = useState<0 | 1>(0);
+    const [monthOffset, setMonthOffset] = useState<0 | 1>(0);
 
     const [selectedOwnSlotId, setSelectedOwnSlotId] = useState<string | null>(null);
     const [slotToDelete, setSlotToDelete] = useState<string | null>(null);
@@ -54,7 +55,7 @@ export function useBuddySchedule() {
 
     return {
         formState: { formDate, setFormDate, formStart, formEnd, handleStartChange },
-        viewState: { viewMode, setViewMode, weekOffset, setWeekOffset },
+        viewState: { viewMode, setViewMode, weekOffset, setWeekOffset, monthOffset, setMonthOffset },
         modalState: {
             isAddConfirmOpen, setIsAddConfirmOpen, confirmAddSlot,
             selectedOwnSlotId, setSelectedOwnSlotId,

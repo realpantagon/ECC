@@ -1,3 +1,5 @@
+import { Card, CardContent } from "../../components/ui/card";
+
 interface StatCardProps {
     label: string;
     value: string | number;
@@ -9,9 +11,11 @@ interface StatCardProps {
  */
 export function StatCard({ label, value, valueClass = "text-slate-800" }: StatCardProps) {
     return (
-        <div className="flex-1 min-w-[80px] bg-white/85 border border-blue-100 rounded-lg shadow-sm p-2">
-            <div className="text-xs text-slate-500 mb-0.5">{label}</div>
-            <div className={`text-sm font-semibold ${valueClass}`}>{value}</div>
-        </div>
+        <Card className="flex-1 min-w-[80px] bg-white/85 border-blue-100 shadow-sm">
+            <CardContent className="p-2">
+                <div className="text-xs text-slate-500 mb-0.5">{label}</div>
+                <div className={`text-sm font-semibold ${valueClass}`}>{value}</div>
+            </CardContent>
+        </Card>
     );
 }

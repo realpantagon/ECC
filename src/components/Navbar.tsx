@@ -1,6 +1,8 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { LogOut } from "lucide-react";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
 
 type DashboardView = "admin" | "buddy" | "participant";
 
@@ -54,27 +56,33 @@ export function Navbar() {
 
                     {user?.role === "admin" && (
                         <div className="flex items-center gap-1 border border-blue-100 bg-blue-50/70 rounded-lg p-0.5">
-                            <button
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="xs"
                                 onClick={() => handleSelectAdminView("admin")}
                                 className={navBtn(activeAdminView === "admin")}
                             >
                                 Admin
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="xs"
                                 onClick={() => handleSelectAdminView("buddy")}
                                 className={navBtn(activeAdminView === "buddy")}
                             >
                                 Buddy
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="xs"
                                 onClick={() => handleSelectAdminView("participant")}
                                 className={navBtn(activeAdminView === "participant")}
                             >
                                 Participant
-                            </button>
+                            </Button>
                         </div>
                     )}
                 </div>
@@ -82,17 +90,19 @@ export function Navbar() {
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
                             <span className="font-medium text-sm text-slate-700">{user.name}</span>
-                            <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded ${roleBadgeClass[user.role] ?? "bg-slate-100 text-slate-600"}`}>
+                            <Badge className={`text-xs font-bold uppercase px-2 py-0.5 rounded ${roleBadgeClass[user.role] ?? "bg-slate-100 text-slate-600"}`}>
                                 {user.role}
-                            </span>
+                            </Badge>
                         </div>
-                        <button
+                        <Button
                             onClick={handleLogout}
                             title="Logout"
-                            className="p-1.5 rounded-full text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors cursor-pointer border border-transparent hover:border-blue-100"
+                            variant="ghost"
+                            size="icon-sm"
+                            className="rounded-full text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors cursor-pointer border border-transparent hover:border-blue-100"
                         >
                             <LogOut size={13} />
-                        </button>
+                        </Button>
                     </div>
                 )}
             </div>

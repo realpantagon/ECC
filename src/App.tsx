@@ -5,6 +5,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { BuddyDashboard } from "./pages/BuddyDashboard";
 import { ParticipantDashboard } from "./pages/ParticipantDashboard";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { Toaster } from "./components/ui/sonner";
 
 type DashboardView = "admin" | "buddy" | "participant";
 
@@ -41,11 +42,14 @@ function DashboardRouter() {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/login/:roleParam" element={<LoginPage />} />
-      <Route path="/*" element={<DashboardRouter />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login/:roleParam" element={<LoginPage />} />
+        <Route path="/*" element={<DashboardRouter />} />
+      </Routes>
+      <Toaster position="top-right" richColors />
+    </>
   );
 }
 

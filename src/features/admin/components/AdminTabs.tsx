@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Award, Users as UsersIcon, Clock } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 
 type TabId = "overview" | "participants" | "report";
 
@@ -17,19 +18,20 @@ const TABS: { id: TabId; label: string; icon: ReactNode }[] = [
 export function AdminTabs({ activeTab, onChange }: AdminTabsProps) {
     return (
         <div className="bg-white/85 backdrop-blur-md border border-blue-100 rounded-2xl shadow-md shadow-blue-100/30 px-4 py-2 animate-fade-in">
-            <div className="flex gap-1 flex-wrap">
-                {TABS.map(({ id, label, icon }) => (
-                    <button
-                        key={id}
-                        onClick={() => onChange(id)}
-                        className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg transition-all cursor-pointer border-none
-                            ${activeTab === id ? "bg-blue-600 text-white" : "bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100"}`}
-                    >
-                        {icon}
-                        {label}
-                    </button>
-                ))}
-            </div>
+            <Tabs value={activeTab} onValueChange={(value) => onChange(value as TabId)}>
+                <TabsList className="flex gap-1 flex-wrap bg-transparent p-0 h-auto">
+                    {TABS.map(({ id, label, icon }) => (
+                        <TabsTrigger
+                            key={id}
+                            value={id}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg transition-all cursor-pointer border-none data-active:bg-blue-600 data-active:text-white text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                        >
+                            {icon}
+                            {label}
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
+            </Tabs>
         </div>
     );
 }

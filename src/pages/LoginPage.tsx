@@ -5,7 +5,7 @@ import { UserCircle2, KeyRound, Eye, EyeOff } from "lucide-react";
 import { resolveLoginRole, resolveLoginRoleFromRaw } from "../shared/utils/loginRoleResolver";
 
 export function LoginPage() {
-    const [empId, setEmpId] = useState("");
+    const [username, setUsername] = useState("");
     const [empCode, setEmpCode] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const { login } = useAuth();
@@ -17,8 +17,8 @@ export function LoginPage() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (empId.trim() && empCode.trim()) {
-            const isSuccess = await login(empId.trim(), empCode.trim(), loginRole);
+        if (username.trim() && empCode.trim()) {
+            const isSuccess = await login(username.trim(), empCode.trim(), loginRole);
             if (!isSuccess) {
                 return;
             }
@@ -41,18 +41,17 @@ export function LoginPage() {
 
                 {/* Form */}
                 <form onSubmit={handleLogin} className="flex flex-col gap-4">
-                    {/* Employee ID */}
+                    {/* Username */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-medium text-slate-600">Username</label>
-                        {/* <label className="text-sm font-medium text-slate-600">Employee ID (emp_id)</label> */}
                         <div className="relative flex items-center">
                             <UserCircle2 className="absolute left-3 text-slate-400 pointer-events-none" size={18} />
                             <input
                                 type="text"
                                 className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
                                 placeholder="Alex.A"
-                                value={empId}
-                                onChange={(e) => setEmpId(e.target.value)}
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 required
                             />
                         </div>
@@ -60,13 +59,13 @@ export function LoginPage() {
 
                     {/* Employee Code */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-medium text-slate-600">Employee ID</label>
+                        <label className="text-sm font-medium text-slate-600">Employee Code</label>
                         <div className="relative flex items-center">
                             <KeyRound className="absolute left-3 text-slate-400 pointer-events-none" size={16} />
                             <input
                                 type={showPassword ? "text" : "password"}
                                 className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
-                                placeholder="9876"
+                                placeholder="Enter your employee code"
                                 value={empCode}
                                 onChange={(e) => setEmpCode(e.target.value)}
                                 required

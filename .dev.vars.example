@@ -1,0 +1,4 @@
+# Copy this file to .dev.vars and set your Neon pooled connection string.
+# Example:
+# DATABASE_URL=postgresql://user:password@ep-xxxx-xxxx-pooler.region.aws.neon.tech/dbname?sslmode=require
+DATABASE_URL=

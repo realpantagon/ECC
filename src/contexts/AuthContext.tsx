@@ -1,10 +1,10 @@
 import { useState, useEffect, createContext, type ReactNode } from "react";
 import type { User, Role } from "../types/User";
-import { supabase } from "../lib/supabase";
+import { api, unwrapJson } from "../lib/api-client";
 
 export interface AuthContextType {
     user: User | null;
-    login: (empId: string, empCode: string, role: Role) => Promise<boolean>;
+    login: (username: string, empCode: string, role: Role) => Promise<boolean>;
     logout: () => void;
 }
 
@@ -24,32 +24,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [user]);
 
-    const login = async (empId: string, empCode: string, role: Role) => {
+    const login = async (username: string, empCode: string, role: Role) => {
         try {
-            // Authenticate with employee credentials and expected role.
-            const { data: existingUser, error: fetchError } = await supabase
-                .from('users')
-                .select('*')
-                .eq('emp_id', empId)
-                .eq('emp_code', empCode)
-                .eq('role', role)
-                .single();
+            const response = await api['api/auth/login'].$post({
+                json: { username, empCode, role },
+            });
 
-            if (fetchError && fetchError.code !== 'PGRST116') {
-                console.error("Error fetching user:", fetchError);
-                throw fetchError;
-            }
+            const payload = await unwrapJson<{
+                ok: boolean;
+                user?: User;
+            }>(response);
 
-            if (existingUser) {
-                setUser({
-                    id: existingUser.id,
-                    name: existingUser.name || existingUser.emp_id,
-                    role: existingUser.role as Role
-                });
+            if (payload.ok && payload.user) {
+                setUser(payload.user);
                 return true;
             }
 
-            alert("Invalid employee ID, code, or role URL.");
+            alert("Invalid username, code, or role URL.");
             return false;
         } catch (error) {
             console.error("Login failed:", error);

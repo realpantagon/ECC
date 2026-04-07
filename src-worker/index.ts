@@ -1,0 +1,461 @@
+import { Hono } from 'hono'
+import { z } from 'zod'
+import { zValidator } from '@hono/zod-validator'
+import { HTTPException } from 'hono/http-exception'
+import { neon } from '@neondatabase/serverless'
+
+type Role = 'admin' | 'buddy' | 'participant'
+type MeetingStatus = 'scheduled' | 'completed' | 'canceled'
+
+type Bindings = {
+  DATABASE_URL: string
+  ASSETS: {
+    fetch: (request: Request) => Promise<Response>
+  }
+}
+
+type UserRow = {
+  id: string
+  name: string
+  role: Role
+  score: number | null
+  username: string | null
+  emp_code: string | null
+}
+
+type AvailabilityRow = {
+  id: string
+  buddy_id: string
+  date: string
+  start_time: string
+  end_time: string
+  booked: boolean
+}
+
+type SlotRequestRow = {
+  id: string
+  participant_id: string
+  availability_id: string
+  topic: string | null
+}
+
+type MeetingRow = {
+  id: string
+  availability_id: string | null
+  buddy_id: string
+  start_time: string
+  end_time: string
+  status: MeetingStatus
+  topic: string | null
+}
+
+type MeetingParticipantRow = {
+  meeting_id: string
+  participant_id: string
+}
+
+type SessionLogRow = {
+  id: string
+  meeting_id: string
+  buddy_id: string
+  duration_minutes: number
+}
+
+const uuidSchema = z.string().uuid()
+
+const loginSchema = z.object({
+  username: z.string().min(1),
+  empCode: z.string().min(1),
+  role: z.enum(['admin', 'buddy', 'participant']),
+})
+
+const addAvailabilitySchema = z.object({
+  buddyId: uuidSchema,
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  start: z.string().regex(/^\d{2}:\d{2}$/),
+  end: z.string().regex(/^\d{2}:\d{2}$/),
+  booked: z.boolean().optional().default(false),
+})
+
+const slotRequestSchema = z.object({
+  participantId: uuidSchema,
+  availabilityId: uuidSchema,
+  topic: z.string().trim().min(1),
+})
+
+const createMeetingSchema = z.object({
+  availabilityId: uuidSchema,
+  buddyId: uuidSchema,
+  participants: z.array(uuidSchema).min(1),
+})
+
+const app = new Hono<{ Bindings: Bindings }>()
+
+function getSql(c: { env: Bindings }) {
+  const url = c.env.DATABASE_URL
+  if (!url) {
+    throw new HTTPException(500, { message: 'DATABASE_URL is missing' })
+  }
+  return neon(url)
+}
+
+function toIsoString(date: string, time: string) {
+  return new Date(`${date}T${time}:00`).toISOString()
+}
+
+app.get('/api/health', (c) => c.json({ ok: true, date: new Date().toISOString() }))
+
+app.post('/api/auth/login', zValidator('json', loginSchema), async (c) => {
+  const sql = getSql(c)
+  const { username, empCode, role } = c.req.valid('json')
+
+  const rows = (await sql`
+    SELECT id, name, role, score, username, emp_code
+    FROM users
+    WHERE username = ${username}
+      AND emp_code = ${empCode}
+      AND role = ${role}
+    LIMIT 1
+  `) as UserRow[]
+
+  if (!rows.length) {
+    return c.json({ ok: false, message: 'Invalid credentials' }, 401)
+  }
+
+  const user = rows[0]
+  return c.json({
+    ok: true,
+    user: {
+      id: user.id,
+      name: user.name || user.username || 'Unknown',
+      role: user.role,
+      score: user.score ?? 0,
+    },
+  })
+})
+
+app.get('/api/bootstrap', async (c) => {
+  const sql = getSql(c)
+
+  const [usersRows, availabilityRows, requestRows, meetingRows, meetingParticipantRows, sessionLogRows] =
+    await Promise.all([
+      sql`SELECT id, name, role, score, username, emp_code FROM users`,
+      sql`SELECT id, buddy_id, date::text AS date, start_time::text AS start_time, end_time::text AS end_time, booked FROM availabilities`,
+      sql`SELECT id, participant_id, availability_id, topic FROM slot_requests`,
+      sql`SELECT id, availability_id, buddy_id, start_time, end_time, status, topic FROM meetings`,
+      sql`SELECT meeting_id, participant_id FROM meeting_participants`,
+      sql`SELECT id, meeting_id, buddy_id, duration_minutes FROM session_logs`,
+    ])
+
+  const typedUsersRows = usersRows as UserRow[]
+  const typedAvailabilityRows = availabilityRows as AvailabilityRow[]
+  const typedRequestRows = requestRows as SlotRequestRow[]
+  const typedMeetingRows = meetingRows as MeetingRow[]
+  const typedMeetingParticipantRows = meetingParticipantRows as MeetingParticipantRow[]
+  const typedSessionLogRows = sessionLogRows as SessionLogRow[]
+
+  const availabilityById = new Map(typedAvailabilityRows.map((a) => [a.id, a]))
+
+  const users = typedUsersRows.map((u) => ({
+    id: u.id,
+    name: u.name,
+    role: u.role,
+    score: u.score ?? 0,
+  }))
+
+  const availabilities = typedAvailabilityRows.map((a) => ({
+    id: a.id,
+    buddyId: a.buddy_id,
+    date: a.date,
+    start: a.start_time.substring(0, 5),
+    end: a.end_time.substring(0, 5),
+    booked: a.booked,
+  }))
+
+  const requests = typedRequestRows.map((r) => ({
+    id: r.id,
+    participantId: r.participant_id,
+    availabilityId: r.availability_id,
+    topic: r.topic ?? '',
+  }))
+
+  const meetings = typedMeetingRows.map((m) => {
+    const participants = typedMeetingParticipantRows
+      .filter((p) => p.meeting_id === m.id)
+      .map((p) => p.participant_id)
+
+    const availability = m.availability_id ? availabilityById.get(m.availability_id) : undefined
+    const start = availability
+      ? `${availability.date} ${availability.start_time.substring(0, 5)}`
+      : m.start_time
+    const end = availability
+      ? `${availability.date} ${availability.end_time.substring(0, 5)}`
+      : m.end_time
+
+    return {
+      id: m.id,
+      availabilityId: m.availability_id,
+      buddyId: m.buddy_id,
+      participants,
+      start,
+      end,
+      status: m.status,
+      topic: m.topic ?? undefined,
+    }
+  })
+
+  const participantsByMeetingId = new Map<string, string[]>()
+  for (const row of typedMeetingParticipantRows) {
+    const current = participantsByMeetingId.get(row.meeting_id) ?? []
+    current.push(row.participant_id)
+    participantsByMeetingId.set(row.meeting_id, current)
+  }
+
+  const sessionLogs = typedSessionLogRows.map((l) => ({
+    id: l.id,
+    meetingId: l.meeting_id,
+    buddyId: l.buddy_id,
+    participants: participantsByMeetingId.get(l.meeting_id) ?? [],
+    durationMinutes: l.duration_minutes,
+  }))
+
+  return c.json({ users, availabilities, requests, meetings, sessionLogs })
+})
+
+app.post('/api/availabilities', zValidator('json', addAvailabilitySchema), async (c) => {
+  const sql = getSql(c)
+  const payload = c.req.valid('json')
+
+  const inserted = (await sql`
+    INSERT INTO availabilities (buddy_id, date, start_time, end_time, booked)
+    VALUES (${payload.buddyId}, ${payload.date}::date, ${payload.start}::time, ${payload.end}::time, ${payload.booked})
+    RETURNING id, buddy_id, date::text AS date, start_time::text AS start_time, end_time::text AS end_time, booked
+  `) as AvailabilityRow[]
+
+  return c.json({
+    availability: {
+      id: inserted[0].id,
+      buddyId: inserted[0].buddy_id,
+      date: inserted[0].date,
+      start: inserted[0].start_time.substring(0, 5),
+      end: inserted[0].end_time.substring(0, 5),
+      booked: inserted[0].booked,
+    },
+  }, 201)
+})
+
+app.delete('/api/availabilities/:id', async (c) => {
+  const sql = getSql(c)
+  const id = c.req.param('id')
+
+  await sql`DELETE FROM availabilities WHERE id = ${id}::uuid`
+  return c.json({ ok: true })
+})
+
+app.post('/api/slot-requests', zValidator('json', slotRequestSchema), async (c) => {
+  const sql = getSql(c)
+  const payload = c.req.valid('json')
+
+  const inserted = (await sql`
+    INSERT INTO slot_requests (participant_id, availability_id, topic)
+    VALUES (${payload.participantId}::uuid, ${payload.availabilityId}::uuid, ${payload.topic})
+    RETURNING id, participant_id, availability_id, topic
+  `) as SlotRequestRow[]
+
+  return c.json({
+    request: {
+      id: inserted[0].id,
+      participantId: inserted[0].participant_id,
+      availabilityId: inserted[0].availability_id,
+      topic: inserted[0].topic ?? '',
+    },
+  }, 201)
+})
+
+app.delete('/api/slot-requests/:id', async (c) => {
+  const sql = getSql(c)
+  await sql`DELETE FROM slot_requests WHERE id = ${c.req.param('id')}::uuid`
+  return c.json({ ok: true })
+})
+
+app.post('/api/meetings', zValidator('json', createMeetingSchema), async (c) => {
+  const sql = getSql(c)
+  const { availabilityId, buddyId, participants } = c.req.valid('json')
+
+  const availabilityRows = (await sql`
+    SELECT id, buddy_id, date::text AS date, start_time::text AS start_time, end_time::text AS end_time, booked
+    FROM availabilities
+    WHERE id = ${availabilityId}::uuid
+    LIMIT 1
+  `) as AvailabilityRow[]
+
+  if (!availabilityRows.length) {
+    throw new HTTPException(404, { message: 'Availability not found' })
+  }
+
+  const availability = availabilityRows[0]
+
+  const requestRows = (await sql`
+    SELECT id, participant_id, availability_id, topic
+    FROM slot_requests
+    WHERE availability_id = ${availabilityId}::uuid
+      AND participant_id = ANY(${participants}::uuid[])
+    LIMIT 1
+  `) as SlotRequestRow[]
+
+  const topic = requestRows[0]?.topic ?? null
+
+  const insertedMeetings = (await sql`
+    INSERT INTO meetings (availability_id, buddy_id, start_time, end_time, status, topic)
+    VALUES (
+      ${availabilityId}::uuid,
+      ${buddyId}::uuid,
+      ${toIsoString(availability.date, availability.start_time.substring(0, 5))}::timestamptz,
+      ${toIsoString(availability.date, availability.end_time.substring(0, 5))}::timestamptz,
+      'scheduled'::meeting_status,
+      ${topic}
+    )
+    RETURNING id, availability_id, buddy_id, start_time, end_time, status, topic
+  `) as MeetingRow[]
+
+  const meeting = insertedMeetings[0]
+
+  for (const participantId of participants) {
+    await sql`
+      INSERT INTO meeting_participants (meeting_id, participant_id)
+      VALUES (${meeting.id}::uuid, ${participantId}::uuid)
+      ON CONFLICT DO NOTHING
+    `
+  }
+
+  await sql`
+    INSERT INTO session_logs (meeting_id, buddy_id, duration_minutes)
+    VALUES (${meeting.id}::uuid, ${buddyId}::uuid, 20)
+  `
+
+  await sql`
+    UPDATE availabilities
+    SET booked = true
+    WHERE id = ${availabilityId}::uuid
+  `
+
+  return c.json({
+    meeting: {
+      id: meeting.id,
+      availabilityId: meeting.availability_id,
+      buddyId: meeting.buddy_id,
+      participants,
+      start: `${availability.date} ${availability.start_time.substring(0, 5)}`,
+      end: `${availability.date} ${availability.end_time.substring(0, 5)}`,
+      status: meeting.status,
+      topic: meeting.topic ?? undefined,
+    },
+  }, 201)
+})
+
+app.post('/api/meetings/:id/cancel', async (c) => {
+  const sql = getSql(c)
+  const meetingId = c.req.param('id')
+
+  const meetings = (await sql`
+    SELECT id, availability_id, buddy_id, start_time, end_time, status, topic
+    FROM meetings
+    WHERE id = ${meetingId}::uuid
+    LIMIT 1
+  `) as MeetingRow[]
+
+  if (!meetings.length) {
+    throw new HTTPException(404, { message: 'Meeting not found' })
+  }
+
+  const meeting = meetings[0]
+
+  const participantsRows = (await sql`
+    SELECT meeting_id, participant_id
+    FROM meeting_participants
+    WHERE meeting_id = ${meetingId}::uuid
+  `) as MeetingParticipantRow[]
+
+  const participants = participantsRows.map((p) => p.participant_id)
+
+  await sql`DELETE FROM meetings WHERE id = ${meetingId}::uuid`
+
+  if (meeting.availability_id) {
+    await sql`
+      UPDATE availabilities
+      SET booked = false
+      WHERE id = ${meeting.availability_id}::uuid
+    `
+
+    if (participants.length > 0) {
+      await sql`
+        DELETE FROM slot_requests
+        WHERE availability_id = ${meeting.availability_id}::uuid
+          AND participant_id = ANY(${participants}::uuid[])
+      `
+    }
+  }
+
+  return c.json({ ok: true, availabilityId: meeting.availability_id })
+})
+
+app.post('/api/meetings/:id/complete', async (c) => {
+  const sql = getSql(c)
+  const meetingId = c.req.param('id')
+
+  const meetings = (await sql`
+    SELECT id, availability_id, buddy_id, start_time, end_time, status, topic
+    FROM meetings
+    WHERE id = ${meetingId}::uuid
+    LIMIT 1
+  `) as MeetingRow[]
+
+  if (!meetings.length) {
+    throw new HTTPException(404, { message: 'Meeting not found' })
+  }
+
+  const meeting = meetings[0]
+
+  await sql`
+    UPDATE meetings
+    SET status = 'completed'::meeting_status
+    WHERE id = ${meetingId}::uuid
+  `
+
+  const participantRows = (await sql`
+    SELECT meeting_id, participant_id
+    FROM meeting_participants
+    WHERE meeting_id = ${meetingId}::uuid
+  `) as MeetingParticipantRow[]
+
+  for (const participant of participantRows) {
+    await sql`
+      UPDATE users
+      SET score = COALESCE(score, 0) + 1
+      WHERE id = ${participant.participant_id}::uuid
+    `
+  }
+
+  await sql`
+    INSERT INTO session_logs (meeting_id, buddy_id, duration_minutes)
+    VALUES (${meetingId}::uuid, ${meeting.buddy_id}::uuid, 20)
+  `
+
+  return c.json({ ok: true })
+})
+
+app.notFound(async (c) => {
+  return c.env.ASSETS.fetch(c.req.raw)
+})
+
+app.onError((err, c) => {
+  if (err instanceof HTTPException) {
+    return c.json({ message: err.message }, err.status)
+  }
+
+  console.error('Unhandled error', err)
+  return c.json({ message: 'Internal Server Error' }, 500)
+})
+
+export type AppType = typeof app
+export default app

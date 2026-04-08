@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
@@ -9,7 +10,8 @@ type MeetingStatus = 'scheduled' | 'completed' | 'canceled'
 
 type Bindings = {
   DATABASE_URL: string
-  ASSETS: {
+  FRONTEND_ORIGIN?: string
+  ASSETS?: {
     fetch: (request: Request) => Promise<Response>
   }
 }
@@ -103,7 +105,54 @@ function toIsoString(date: string, time: string) {
   return new Date(`${date}T${time}:00`).toISOString()
 }
 
-app.get('/api/health', (c) => c.json({ ok: true, date: new Date().toISOString() }))
+async function pingDatabase(env: Bindings) {
+  const sql = neon(env.DATABASE_URL)
+  await sql`SELECT 1`
+}
+
+function originAllowed(origin: string, rules: string[]) {
+  return rules.some((rule) => {
+    if (rule === '*') return true
+    if (rule.includes('*')) {
+      const escaped = rule.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')
+      return new RegExp(`^${escaped}$`, 'i').test(origin)
+    }
+    return rule === origin
+  })
+}
+
+app.use('/api/*', cors({
+  origin: (origin, c) => {
+    const configured = (c.env.FRONTEND_ORIGIN || '')
+      .split(',')
+      .map((item: string) => item.trim())
+      .filter(Boolean)
+
+    if (configured.length === 0) {
+      return '*'
+    }
+
+    if (!origin) {
+      return configured[0]
+    }
+
+    return originAllowed(origin, configured) ? origin : configured[0]
+  },
+  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+}))
+
+app.options('/api/*', (c) => c.body(null, 204))
+
+app.get('/api/health', async (c) => {
+  try {
+    await pingDatabase(c.env)
+    return c.json({ ok: true, date: new Date().toISOString() })
+  } catch (error) {
+    console.error('Health check failed', error)
+    return c.json({ ok: false, message: 'Database ping failed' }, 500)
+  }
+})
 
 app.post('/api/auth/login', zValidator('json', loginSchema), async (c) => {
   const sql = getSql(c)
@@ -445,7 +494,11 @@ app.post('/api/meetings/:id/complete', async (c) => {
 })
 
 app.notFound(async (c) => {
-  return c.env.ASSETS.fetch(c.req.raw)
+  if (c.env.ASSETS) {
+    return c.env.ASSETS.fetch(c.req.raw)
+  }
+
+  return c.json({ message: 'Not Found' }, 404)
 })
 
 app.onError((err, c) => {
@@ -458,4 +511,17 @@ app.onError((err, c) => {
 })
 
 export type AppType = typeof app
-export default app
+
+const worker = {
+  fetch: app.fetch,
+  scheduled: async (_event: unknown, env: Bindings, _ctx: unknown) => {
+    try {
+      await pingDatabase(env)
+      console.log('Scheduled keep-alive ping succeeded')
+    } catch (error) {
+      console.error('Scheduled keep-alive ping failed', error)
+    }
+  },
+}
+
+export default worker

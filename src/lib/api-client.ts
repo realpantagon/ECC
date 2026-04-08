@@ -1,9 +1,26 @@
 import { hc } from 'hono/client'
 import type { AppType } from '../../src-worker'
 
-const baseUrl =
-  import.meta.env.VITE_API_BASE_URL ||
-  (typeof window !== 'undefined' ? window.location.origin : 'http://127.0.0.1:8787')
+function resolveBaseUrl() {
+  const fallback =
+    typeof window !== 'undefined' ? window.location.origin : 'http://127.0.0.1:8787'
+
+  const raw = import.meta.env.VITE_API_BASE_URL?.trim()
+  if (!raw) return fallback
+
+  if (/^https?:\/\//i.test(raw)) {
+    return raw
+  }
+
+  // If protocol is omitted, infer it to avoid path-relative URL bugs.
+  if (/^(localhost|127\.0\.0\.1|\[::1\]|\d+\.\d+\.\d+\.\d+)(:\d+)?(\/.*)?$/i.test(raw)) {
+    return `http://${raw}`
+  }
+
+  return `https://${raw}`
+}
+
+const baseUrl = resolveBaseUrl()
 
 export const api = hc<AppType>(baseUrl) as ReturnType<typeof hc<any>>
 

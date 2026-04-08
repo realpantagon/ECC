@@ -2,3 +2,6 @@
 # Example:
 # DATABASE_URL=postgresql://user:password@ep-xxxx-xxxx-pooler.region.aws.neon.tech/dbname?sslmode=require
 DATABASE_URL=
+
+# Optional: allow local frontend origin(s), comma-separated
+# FRONTEND_ORIGIN=http://localhost:5173

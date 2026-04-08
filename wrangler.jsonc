@@ -3,12 +3,16 @@
   "name": "ecc-worker-app",
   "main": "src-worker/index.ts",
   "compatibility_date": "2026-04-07",
+  "triggers": {
+    "crons": ["*/4 * * * *"]
+  },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   },
   "vars": {
-    "APP_NAME": "ECC"
+    "APP_NAME": "ECC",
+    "FRONTEND_ORIGIN": "http://localhost:5173,http://localhost:5176,https://*.pages.dev"
   }
 }

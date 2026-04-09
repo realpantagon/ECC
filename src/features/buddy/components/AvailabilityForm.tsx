@@ -12,6 +12,17 @@ interface AvailabilityFormProps {
     onAddSubmit: (e: React.FormEvent) => void;
 }
 
+function handleOpenPickerOnClick(e: React.MouseEvent<HTMLInputElement>) {
+    const input = e.currentTarget as HTMLInputElement & { showPicker?: () => void };
+    if (typeof input.showPicker === "function") {
+        try {
+            input.showPicker();
+        } catch {
+            // Some browsers can block showPicker; focused input still allows manual selection.
+        }
+    }
+}
+
 export function AvailabilityForm({ date, setDate, start, onStartChange, end, onAddSubmit }: AvailabilityFormProps) {
     return (
         <Card className="bg-white/90 border-blue-100 shadow-md shadow-blue-100/30">
@@ -35,6 +46,7 @@ export function AvailabilityForm({ date, setDate, start, onStartChange, end, onA
                             type="date"
                             value={date}
                             onChange={e => setDate(e.target.value)}
+                            onClick={handleOpenPickerOnClick}
                             required
                             className="bg-white w-full"
                         />
@@ -46,6 +58,7 @@ export function AvailabilityForm({ date, setDate, start, onStartChange, end, onA
                             type="time"
                             value={start}
                             onChange={e => onStartChange(e.target.value)}
+                            onClick={handleOpenPickerOnClick}
                             required
                             className="bg-white w-full"
                         />

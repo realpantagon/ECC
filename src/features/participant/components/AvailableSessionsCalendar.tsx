@@ -43,11 +43,14 @@ export function AvailableSessionsCalendar({
         const slotRequests = requests.filter(r => r.availabilityId === slot.id);
         const isJoined = pendingRequests.some(r => r.availabilityId === slot.id);
         const isMeeting = activeMeetings.some(m => m.availabilityId === slot.id);
+        const isReserved = slot.booked && !isMeeting;
         const isSelected = selectedSlots.includes(slot.id);
+        const isPendingOther = !isJoined && !isMeeting && !isReserved && slotRequests.length > 0;
 
         const weekKey = getISOWeekKey(slot.date);
         const currentWeekCount = (reservedCountByWeek.get(weekKey) || 0) + (selectedCountByWeek.get(weekKey) || 0);
-        const isWeekReserved = !isJoined && !isMeeting && !isSelected && currentWeekCount >= 3;
+        const isWeekReserved = !isJoined && !isMeeting && !isReserved && !isPendingOther && !isSelected && currentWeekCount >= 3;
+        const isDisabled = isMeeting || isJoined || isReserved || isPendingOther || isWeekReserved;
 
         if (isMonthView) {
             return (
@@ -55,16 +58,20 @@ export function AvailableSessionsCalendar({
                     className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.64rem] font-medium whitespace-nowrap transition-all
                         ${isWeekReserved ? "bg-slate-50 border border-slate-200 text-slate-400 opacity-60" :
                         isMeeting ? "bg-emerald-50 border border-emerald-300 text-emerald-700" :
-                        isJoined ? "bg-blue-50 border border-blue-300 text-blue-600" :
+                        isReserved ? "bg-slate-100 border border-slate-300 text-slate-500 opacity-80" :
+                        isPendingOther ? "bg-slate-50 border border-slate-200 text-slate-400 opacity-70" :
+                        isJoined ? "bg-slate-50 border border-slate-200 text-slate-400 opacity-70" :
                         isSelected ? "bg-blue-600 border-blue-600 text-white" :
                         "bg-blue-50 border border-blue-200 text-blue-500 hover:bg-blue-100 cursor-pointer"}`}
                     title={isWeekReserved ? 'Weekly limit reached (3/3)' : `${slot.start} - ${slot.end} (${slotRequests.length} participants)`}
-                    onClick={() => !isMeeting && !isJoined && !isWeekReserved && handleToggleSlot(slot.id)}
+                    onClick={() => !isDisabled && handleToggleSlot(slot.id)}
                 >
                     {isWeekReserved ? <Lock size={8} /> : <Clock size={9} />}
                     <span>{slot.start} {slotRequests.length > 0 && !isMeeting ? `(${slotRequests.length})` : ""}</span>
                     {isMeeting ? <span className="text-emerald-400 text-[0.55rem]">★</span> :
-                     isJoined ? <span className="text-[0.55rem]">✓</span> :
+                     isReserved ? <span className="text-[0.55rem]">•</span> :
+                     isPendingOther ? <span className="text-[0.55rem]">•</span> :
+                     isJoined ? <span className="text-[0.55rem]">•</span> :
                      isSelected ? <Check size={8} /> : null}
                 </div>
             );
@@ -75,11 +82,13 @@ export function AvailableSessionsCalendar({
                 className={`text-xs rounded-lg p-1.5 flex flex-col gap-0.5 transition-all
                     ${isWeekReserved ? "bg-slate-50 border border-slate-200 opacity-60" :
                     isMeeting ? "bg-emerald-50 border border-emerald-200" :
-                    isJoined ? "bg-blue-100 border border-blue-300" :
+                    isReserved ? "bg-slate-100 border border-slate-300 opacity-80" :
+                    isPendingOther ? "bg-slate-50 border border-slate-200 opacity-70" :
+                    isJoined ? "bg-slate-50 border border-slate-200 opacity-70" :
                     isSelected ? "bg-blue-600 border-blue-600 text-white" :
                     "bg-blue-50 border border-blue-200 hover:bg-blue-100 cursor-pointer"}`}
-                style={{ cursor: isMeeting || isJoined || isWeekReserved ? 'default' : 'pointer', opacity: isWeekReserved ? 0.7 : 1 }}
-                onClick={() => !isMeeting && !isJoined && !isWeekReserved && handleToggleSlot(slot.id)}
+                style={{ cursor: isDisabled ? 'default' : 'pointer', opacity: isWeekReserved ? 0.7 : 1 }}
+                onClick={() => !isDisabled && handleToggleSlot(slot.id)}
             >
                 <div className="flex items-center gap-1 font-medium">
                     {isWeekReserved ? <Lock size={10} /> : <Clock size={10} />}
@@ -91,8 +100,8 @@ export function AvailableSessionsCalendar({
                         {isWeekReserved ? 'Limit (3/3)' : `${slotRequests.length} participant${slotRequests.length !== 1 ? 's' : ''}`}
                     </div>
                 )}
-                <div className={`text-[0.65rem] font-semibold ${isSelected ? "text-white" : isMeeting ? "text-emerald-600" : isJoined ? "text-blue-400" : isWeekReserved ? "text-slate-400" : "text-blue-500"}`}>
-                    {isMeeting ? "CONFIRMED" : isJoined ? "REQUESTED" : isSelected ? "SELECTED" : isWeekReserved ? "LIMIT REACHED" : "Available"}
+                <div className={`text-[0.65rem] font-semibold ${isSelected ? "text-white" : isMeeting ? "text-emerald-600" : isReserved || isJoined || isPendingOther ? "text-slate-500" : isWeekReserved ? "text-slate-400" : "text-blue-500"}`}>
+                    {isMeeting ? "CONFIRMED" : isReserved ? "RESERVED" : isJoined || isPendingOther ? "PENDING ADMIN" : isSelected ? "SELECTED" : isWeekReserved ? "LIMIT REACHED" : "Available"}
                 </div>
             </div>
         );

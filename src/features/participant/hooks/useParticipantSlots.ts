@@ -32,7 +32,6 @@ export function useParticipantSlots() {
 
     const visibleSlots = availabilities.filter(a => {
         const isMyMeeting = activeMeetings.some(m => m.availabilityId === a.id);
-        if (!isMyMeeting && a.booked) return false;
 
         const parts = a.date.split('-');
         if (parts.length !== 3) return false;
@@ -43,13 +42,6 @@ export function useParticipantSlots() {
         // Restrict to 2-week rolling window
         if (!(d >= thisWeekStart && d <= nextWeekEnd)) return false;
 
-        const iAlreadyRequested = pendingRequests.some(r => r.availabilityId === a.id);
-        if (!iAlreadyRequested && !isMyMeeting) {
-            const hasOtherRequest = requests.some(r =>
-                r.availabilityId === a.id && r.participantId !== user.id && !hasMeetingForSlot(r.participantId, r.availabilityId)
-            );
-            if (hasOtherRequest) return false;
-        }
         return true;
     });
 

@@ -1,9 +1,10 @@
-import { useState, useEffect, createContext, type ReactNode } from 'react'
+import { useState, useEffect, useCallback, createContext, type ReactNode } from 'react'
 import type { User } from '../types/User'
 import type { Availability, SlotRequest } from '../types/Availability'
 import type { Meeting, SessionLog } from '../types/Meeting'
 import { getISOWeekKey } from '../shared/utils/dateUtils'
 import { api, unwrapJson } from '../lib/api-client'
+import { useAuth } from '../hooks/useAuth'
 
 export interface DataContextType {
   users: User[]
@@ -11,6 +12,7 @@ export interface DataContextType {
   requests: SlotRequest[]
   meetings: Meeting[]
   sessionLogs: SessionLog[]
+  refreshData: () => Promise<void>
 
   addAvailability: (availability: Omit<Availability, 'id'>) => Promise<void>
   deleteAvailability: (id: string) => Promise<void>
@@ -32,13 +34,14 @@ type BootstrapPayload = {
 export const DataContext = createContext<DataContextType | undefined>(undefined)
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
   const [users, setUsers] = useState<User[]>([])
   const [availabilities, setAvailabilities] = useState<Availability[]>([])
   const [requests, setRequests] = useState<SlotRequest[]>([])
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [sessionLogs, setSessionLogs] = useState<SessionLog[]>([])
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     const response = await api['api/bootstrap'].$get({})
     const payload = await unwrapJson<BootstrapPayload>(response)
 
@@ -47,14 +50,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setRequests(payload.requests)
     setMeetings(payload.meetings)
     setSessionLogs(payload.sessionLogs)
-  }
+  }, [])
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/rules-of-hooks, react-hooks/set-state-in-effect
   useEffect(() => {
+    if (!user) {
+      setUsers([])
+      setAvailabilities([])
+      setRequests([])
+      setMeetings([])
+      setSessionLogs([])
+      return
+    }
+
     fetchData().catch((error) => {
       console.error('Failed to fetch bootstrap data:', error)
     })
-  }, [])
+  }, [user?.id, fetchData])
 
   const addAvailability = async (availability: Omit<Availability, 'id'>) => {
     const response = await api['api/availabilities'].$post({
@@ -252,6 +263,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         requests,
         meetings,
         sessionLogs,
+        refreshData: fetchData,
         addAvailability,
         deleteAvailability,
         requestSlot,

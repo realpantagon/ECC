@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useData } from "../hooks/useData";
 import { useNavigate } from "react-router-dom";
 import { UserCircle2, KeyRound, Eye, EyeOff } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -11,6 +12,7 @@ export function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
+    const { refreshData } = useData();
     const navigate = useNavigate();
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -19,7 +21,10 @@ export function LoginPage() {
         setIsLoading(true);
         try {
             const isSuccess = await login(username.trim(), empCode.trim());
-            if (isSuccess) navigate("/");
+            if (isSuccess) {
+                await refreshData();
+                navigate("/");
+            }
         } finally {
             setIsLoading(false);
         }

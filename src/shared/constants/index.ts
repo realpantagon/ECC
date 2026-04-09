@@ -1,5 +1,5 @@
 /** Total number of sessions in the ECC program. */
-export const TOTAL_WEEKS = 28;
+export const TOTAL_WEEKS = 26;
 
 /** Tailwind background colors cycled for buddy legend/calendar dots. */
 export const BUDDY_BG_COLORS = [

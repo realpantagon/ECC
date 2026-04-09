@@ -31,16 +31,8 @@ export function useParticipantSlots() {
     const { thisWeekStart, nextWeekStart, nextWeekEnd } = getTwoWeekWindow();
 
     const visibleSlots = availabilities.filter(a => {
-        const isMyMeeting = activeMeetings.some(m => m.availabilityId === a.id);
-
         const parts = a.date.split('-');
         if (parts.length !== 3) return false;
-        const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-
-        // Exclude weekends
-        if (d.getDay() === 0 || d.getDay() === 6) return false;
-        // Restrict to 2-week rolling window
-        if (!(d >= thisWeekStart && d <= nextWeekEnd)) return false;
 
         return true;
     });

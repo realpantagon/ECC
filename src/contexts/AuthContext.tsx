@@ -1,10 +1,10 @@
 import { useState, useEffect, createContext, type ReactNode } from "react";
-import type { User, Role } from "../types/User";
+import type { User } from "../types/User";
 import { api, unwrapJson } from "../lib/api-client";
 
 export interface AuthContextType {
     user: User | null;
-    login: (username: string, empCode: string, role: Role) => Promise<boolean>;
+    login: (username: string, empCode: string) => Promise<boolean>;
     logout: () => void;
 }
 
@@ -24,10 +24,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [user]);
 
-    const login = async (username: string, empCode: string, role: Role) => {
+    const login = async (username: string, empCode: string) => {
         try {
             const response = await api['api/auth/login'].$post({
-                json: { username, empCode, role },
+                json: { username, empCode },
             });
 
             const payload = await unwrapJson<{

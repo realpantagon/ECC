@@ -79,7 +79,6 @@ const uuidSchema = z.string().uuid()
 const loginSchema = z.object({
   username: z.string().min(1),
   empCode: z.string().min(1),
-  role: z.enum(['admin', 'buddy', 'participant']),
 })
 
 const addAvailabilitySchema = z.object({
@@ -208,14 +207,13 @@ app.get('/api/health', async (c) => {
 
 app.post('/api/auth/login', zValidator('json', loginSchema), async (c) => {
   const sql = getSql(c)
-  const { username, empCode, role } = c.req.valid('json')
+  const { username, empCode } = c.req.valid('json')
 
   const rows = (await sql`
     SELECT id, name, role, score, username, emp_code
     FROM users
     WHERE username = ${username}
       AND emp_code = ${empCode}
-      AND role = ${role}
     LIMIT 1
   `) as UserRow[]
 

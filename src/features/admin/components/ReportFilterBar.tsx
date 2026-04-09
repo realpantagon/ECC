@@ -1,6 +1,7 @@
-import { Filter } from "lucide-react";
+import { Filter, X } from "lucide-react";
 import type { ReportFilter } from "../hooks/useSessionReport";
 import type { User } from "../../../types/User";
+import { Button } from "../../../components/ui/button";
 
 interface ReportFilterBarProps {
     filter: ReportFilter;
@@ -12,7 +13,7 @@ interface ReportFilterBarProps {
     participants: User[];
 }
 
-const selCls = "px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition cursor-pointer";
+const selCls = "px-2.5 py-1.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition cursor-pointer min-w-0";
 
 export function ReportFilterBar({
     filter,
@@ -24,11 +25,27 @@ export function ReportFilterBar({
     participants,
 }: ReportFilterBarProps) {
     return (
-        <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
-            <h2 className="text-sm font-semibold text-slate-800">Session Report</h2>
-            <div className="flex items-center gap-2 flex-wrap">
-                <div className="bg-white/85 border border-blue-100 rounded-lg shadow-sm px-3 py-1 flex gap-2 flex-wrap items-center">
-                    <Filter size={14} className="text-slate-400" />
+        <div className="mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <h2 className="text-sm font-semibold text-slate-800">Session Report</h2>
+                {hasFilters && (
+                    <Button
+                        variant="outline"
+                        size="xs"
+                        onClick={clearFilters}
+                        className="self-start sm:self-auto text-slate-600 border-slate-200 hover:bg-slate-50 cursor-pointer"
+                    >
+                        <X size={12} /> Clear Filters
+                    </Button>
+                )}
+            </div>
+
+            <div className="bg-white/90 border border-blue-100 rounded-xl shadow-sm p-3">
+                <div className="flex items-center gap-1.5 text-slate-400 mb-2">
+                    <Filter size={13} />
+                    <span className="text-xs font-medium text-slate-500">Filter by</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                     <input
                         type="date"
                         value={filter.date}
@@ -55,14 +72,6 @@ export function ReportFilterBar({
                         <option value="canceled">Canceled</option>
                     </select>
                 </div>
-                {hasFilters && (
-                    <button
-                        className="px-3 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors cursor-pointer"
-                        onClick={clearFilters}
-                    >
-                        Clear Filters
-                    </button>
-                )}
             </div>
         </div>
     );

@@ -31,7 +31,7 @@ function DashboardRouter() {
   return (
     <>
       <Navbar />
-      <div className="max-w-6xl mx-auto px-4 pb-12">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 pb-12">
         {activeView === "buddy" && <BuddyDashboard />}
         {activeView === "participant" && <ParticipantDashboard />}
         {activeView === "admin" && <AdminDashboard />}

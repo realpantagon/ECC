@@ -22,7 +22,28 @@ function resolveBaseUrl() {
 
 const baseUrl = resolveBaseUrl()
 
-export const api = hc<AppType>(baseUrl) as ReturnType<typeof hc<any>>
+function getAuthHeaders(): Record<string, string> {
+  try {
+    const saved = localStorage.getItem('auth_user')
+    if (!saved) return {}
+    const user = JSON.parse(saved) as { id?: string }
+    if (user?.id) return { 'X-User-Id': user.id }
+  } catch {
+    // ignore parse errors
+  }
+  return {}
+}
+
+export const api = hc<AppType>(baseUrl, {
+  fetch: (input: RequestInfo | URL, options: RequestInit = {}) => {
+    const headers = new Headers(options.headers)
+    const authHeaders = getAuthHeaders()
+    for (const [key, value] of Object.entries(authHeaders)) {
+      headers.set(key, value)
+    }
+    return fetch(input, { ...options, headers })
+  },
+}) as ReturnType<typeof hc<any>>
 
 export async function unwrapJson<T>(response: Response): Promise<T> {
   const rawBody = await response.text()

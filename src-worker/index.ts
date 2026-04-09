@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import { neon } from '@neondatabase/serverless'
+import type { MiddlewareHandler } from 'hono'
 
 type Role = 'admin' | 'buddy' | 'participant'
 type MeetingStatus = 'scheduled' | 'completed' | 'canceled'
@@ -14,6 +15,16 @@ type Bindings = {
   ASSETS?: {
     fetch: (request: Request) => Promise<Response>
   }
+}
+
+type Variables = {
+  userId: string
+  userRole: Role
+}
+
+type AppEnv = {
+  Bindings: Bindings
+  Variables: Variables
 }
 
 type UserRow = {
@@ -91,7 +102,7 @@ const createMeetingSchema = z.object({
   participants: z.array(uuidSchema).min(1),
 })
 
-const app = new Hono<{ Bindings: Bindings }>()
+const app = new Hono<AppEnv>()
 
 function getSql(c: { env: Bindings }) {
   const url = c.env.DATABASE_URL
@@ -121,6 +132,45 @@ function originAllowed(origin: string, rules: string[]) {
   })
 }
 
+/**
+ * Role-based auth middleware.
+ * Reads X-User-Id header, validates the user exists in DB, and checks their role.
+ * Pass no roles to allow any authenticated user.
+ */
+function requireRole(...allowedRoles: Role[]): MiddlewareHandler<AppEnv> {
+  return async (c, next) => {
+    const userId = c.req.header('X-User-Id')
+    if (!userId) {
+      return c.json({ message: 'Unauthorized: missing user ID' }, 401)
+    }
+
+    const sql = getSql(c)
+    let rows: Pick<UserRow, 'id' | 'role'>[]
+    try {
+      rows = (await sql`
+        SELECT id, role FROM users WHERE id = ${userId}::uuid LIMIT 1
+      `) as Pick<UserRow, 'id' | 'role'>[]
+    } catch {
+      return c.json({ message: 'Unauthorized: invalid user ID' }, 401)
+    }
+
+    if (!rows.length) {
+      return c.json({ message: 'Unauthorized: user not found' }, 401)
+    }
+
+    const user = rows[0]
+
+    if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+      return c.json({ message: 'Forbidden: insufficient permissions' }, 403)
+    }
+
+    c.set('userId', user.id)
+    c.set('userRole', user.role)
+
+    await next()
+  }
+}
+
 app.use('/api/*', cors({
   origin: (origin, c) => {
     const configured = (c.env.FRONTEND_ORIGIN || '')
@@ -139,10 +189,12 @@ app.use('/api/*', cors({
     return originAllowed(origin, configured) ? origin : configured[0]
   },
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
 }))
 
 app.options('/api/*', (c) => c.body(null, 204))
+
+// ── Public routes (no auth required) ──────────────────────────────────────
 
 app.get('/api/health', async (c) => {
   try {
@@ -183,7 +235,9 @@ app.post('/api/auth/login', zValidator('json', loginSchema), async (c) => {
   })
 })
 
-app.get('/api/bootstrap', async (c) => {
+// ── Authenticated routes (any role) ───────────────────────────────────────
+
+app.get('/api/bootstrap', requireRole(), async (c) => {
   const sql = getSql(c)
 
   const [usersRows, availabilityRows, requestRows, meetingRows, meetingParticipantRows, sessionLogRows] =
@@ -271,9 +325,17 @@ app.get('/api/bootstrap', async (c) => {
   return c.json({ users, availabilities, requests, meetings, sessionLogs })
 })
 
-app.post('/api/availabilities', zValidator('json', addAvailabilitySchema), async (c) => {
+// ── Buddy-only routes ──────────────────────────────────────────────────────
+
+app.post('/api/availabilities', requireRole('buddy'), zValidator('json', addAvailabilitySchema), async (c) => {
   const sql = getSql(c)
   const payload = c.req.valid('json')
+  const userId = c.get('userId')
+
+  // Buddy can only add slots for themselves
+  if (payload.buddyId !== userId) {
+    return c.json({ message: 'Forbidden: can only add availability for yourself' }, 403)
+  }
 
   const inserted = (await sql`
     INSERT INTO availabilities (buddy_id, date, start_time, end_time, booked)
@@ -293,17 +355,43 @@ app.post('/api/availabilities', zValidator('json', addAvailabilitySchema), async
   }, 201)
 })
 
-app.delete('/api/availabilities/:id', async (c) => {
+app.delete('/api/availabilities/:id', requireRole('buddy'), async (c) => {
   const sql = getSql(c)
   const id = c.req.param('id')
+  const userId = c.get('userId')
+
+  // Verify ownership: buddy can only delete their own slots
+  const rows = (await sql`
+    SELECT id, buddy_id, booked FROM availabilities WHERE id = ${id}::uuid LIMIT 1
+  `) as Pick<AvailabilityRow, 'id' | 'buddy_id' | 'booked'>[]
+
+  if (!rows.length) {
+    throw new HTTPException(404, { message: 'Availability not found' })
+  }
+
+  if (rows[0].buddy_id !== userId) {
+    return c.json({ message: 'Forbidden: can only delete your own slots' }, 403)
+  }
+
+  if (rows[0].booked) {
+    return c.json({ message: 'Cannot delete a booked slot' }, 400)
+  }
 
   await sql`DELETE FROM availabilities WHERE id = ${id}::uuid`
   return c.json({ ok: true })
 })
 
-app.post('/api/slot-requests', zValidator('json', slotRequestSchema), async (c) => {
+// ── Participant-only routes ────────────────────────────────────────────────
+
+app.post('/api/slot-requests', requireRole('participant'), zValidator('json', slotRequestSchema), async (c) => {
   const sql = getSql(c)
   const payload = c.req.valid('json')
+  const userId = c.get('userId')
+
+  // Participant can only request slots for themselves
+  if (payload.participantId !== userId) {
+    return c.json({ message: 'Forbidden: can only request slots for yourself' }, 403)
+  }
 
   const inserted = (await sql`
     INSERT INTO slot_requests (participant_id, availability_id, topic)
@@ -321,13 +409,35 @@ app.post('/api/slot-requests', zValidator('json', slotRequestSchema), async (c) 
   }, 201)
 })
 
-app.delete('/api/slot-requests/:id', async (c) => {
+// Participant can cancel their own; admin can cancel any
+app.delete('/api/slot-requests/:id', requireRole('participant', 'admin'), async (c) => {
   const sql = getSql(c)
-  await sql`DELETE FROM slot_requests WHERE id = ${c.req.param('id')}::uuid`
+  const requestId = c.req.param('id')
+  const userId = c.get('userId')
+  const userRole = c.get('userRole')
+
+  if (userRole === 'participant') {
+    // Verify ownership: participant can only cancel their own requests
+    const rows = (await sql`
+      SELECT id, participant_id FROM slot_requests WHERE id = ${requestId}::uuid LIMIT 1
+    `) as Pick<SlotRequestRow, 'id' | 'participant_id'>[]
+
+    if (!rows.length) {
+      throw new HTTPException(404, { message: 'Slot request not found' })
+    }
+
+    if (rows[0].participant_id !== userId) {
+      return c.json({ message: 'Forbidden: can only cancel your own requests' }, 403)
+    }
+  }
+
+  await sql`DELETE FROM slot_requests WHERE id = ${requestId}::uuid`
   return c.json({ ok: true })
 })
 
-app.post('/api/meetings', zValidator('json', createMeetingSchema), async (c) => {
+// ── Admin-only routes ──────────────────────────────────────────────────────
+
+app.post('/api/meetings', requireRole('admin'), zValidator('json', createMeetingSchema), async (c) => {
   const sql = getSql(c)
   const { availabilityId, buddyId, participants } = c.req.valid('json')
 
@@ -402,7 +512,7 @@ app.post('/api/meetings', zValidator('json', createMeetingSchema), async (c) => 
   }, 201)
 })
 
-app.post('/api/meetings/:id/cancel', async (c) => {
+app.post('/api/meetings/:id/cancel', requireRole('admin'), async (c) => {
   const sql = getSql(c)
   const meetingId = c.req.param('id')
 
@@ -448,7 +558,7 @@ app.post('/api/meetings/:id/cancel', async (c) => {
   return c.json({ ok: true, availabilityId: meeting.availability_id })
 })
 
-app.post('/api/meetings/:id/complete', async (c) => {
+app.post('/api/meetings/:id/complete', requireRole('admin'), async (c) => {
   const sql = getSql(c)
   const meetingId = c.req.param('id')
 

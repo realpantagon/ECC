@@ -1,6 +1,12 @@
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, XCircle, CalendarClock } from "lucide-react";
 import type { Meeting } from "../../../types/Meeting";
 import type { User } from "../../../types/User";
+import { Card } from "../../../components/ui/card";
+import { Badge } from "../../../components/ui/badge";
+import { Button } from "../../../components/ui/button";
+import {
+    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "../../../components/ui/table";
 
 interface SessionReportTableProps {
     meetings: Meeting[];
@@ -10,6 +16,12 @@ interface SessionReportTableProps {
     onComplete: (meeting: Meeting) => void;
     onCancel: (meeting: Meeting) => void;
 }
+
+const statusConfig = {
+    scheduled: { label: "Scheduled", cls: "bg-blue-50 text-blue-600 border-blue-200" },
+    completed: { label: "Completed", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    canceled:  { label: "Canceled",  cls: "bg-red-50 text-red-500 border-red-200" },
+};
 
 export function SessionReportTable({
     meetings,
@@ -21,76 +33,86 @@ export function SessionReportTable({
 }: SessionReportTableProps) {
     if (meetings.length === 0) {
         return (
-            <div className="bg-white/85 border border-blue-100 rounded-xl shadow-md py-6 text-center text-slate-400 text-sm">
-                {hasFilters ? 'No meetings match the selected filters.' : 'No meetings have been scheduled yet.'}
-            </div>
+            <Card className="bg-white/90 border-blue-100 shadow-md py-10 text-center">
+                <CalendarClock className="mx-auto mb-2 text-slate-300" size={32} />
+                <p className="text-slate-400 text-sm">
+                    {hasFilters ? "No meetings match the selected filters." : "No meetings have been scheduled yet."}
+                </p>
+            </Card>
         );
     }
 
     return (
-        <div className="bg-white/85 border border-blue-100 rounded-xl shadow-md overflow-x-auto">
-            <table className="w-full text-sm text-left border-collapse">
-                <thead>
-                    <tr>
-                        {["Date & Time", "Buddy", "Participant", "Topic / Note", "Status", "Actions"].map(h => (
-                            <th key={h} className="px-3 py-1.5 bg-blue-50/60 text-blue-600 font-semibold border-b border-blue-100">
-                                {h}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {meetings.map(m => {
-                        const buddy = buddies.find(b => b.id === m.buddyId);
-                        const partNames = m.participants
-                            .map(pid => participants.find(p => p.id === pid)?.name || "Unknown")
-                            .join(", ");
-                        const isCompleted = m.status === 'completed';
-                        const isCanceled = m.status === 'canceled';
-                        return (
-                            <tr key={m.id} className={`border-b border-slate-100 last:border-0 hover:bg-blue-50/20 ${isCanceled ? "opacity-50" : ""}`}>
-                                <td className="px-3 py-1.5">
-                                    <div className="flex flex-col gap-0.5">
-                                        <span className="font-semibold text-slate-800">{m.start.split(' ')[0]}</span>
-                                        <span className="text-xs text-slate-400">{m.start.split(' ')[1]} - {m.end.split(' ')[1]}</span>
-                                    </div>
-                                </td>
-                                <td className="px-3 py-1.5 font-medium text-slate-800">{buddy?.name}</td>
-                                <td className="px-3 py-1.5 text-slate-700">{partNames}</td>
-                                <td className="px-3 py-1.5">
-                                    <div className="text-xs text-slate-500 max-w-[140px] truncate" title={m.topic}>
-                                        {m.topic ? `"${m.topic}"` : '-'}
-                                    </div>
-                                </td>
-                                <td className="px-3 py-1.5">
-                                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold uppercase
-                                        ${isCompleted ? "bg-emerald-50 text-emerald-700" : isCanceled ? "bg-red-50 text-red-500" : "bg-blue-50 text-blue-600"}`}>
-                                        {m.status}
-                                    </span>
-                                </td>
-                                <td className="px-3 py-1.5">
-                                    {m.status === 'scheduled' && (
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => onComplete(m)}
-                                                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-md transition-colors cursor-pointer"
-                                            >
-                                                <CheckCircle size={11} /> Complete
-                                            </button>
-                                            <button
-                                                onClick={() => onCancel(m)}
-                                                className="px-2 py-1 text-xs bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 rounded-md transition-colors cursor-pointer"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    )}
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
-        </div>
+        <Card className="bg-white/90 border-blue-100 shadow-md overflow-hidden">
+            <div className="overflow-x-auto">
+                <Table className="text-sm">
+                    <TableHeader>
+                        <TableRow className="bg-blue-50/60 hover:bg-blue-50/60">
+                            {["Date & Time", "Buddy", "Participant", "Topic", "Status", "Actions"].map(h => (
+                                <TableHead key={h} className="text-blue-600 font-semibold text-xs px-3 py-2 whitespace-nowrap">
+                                    {h}
+                                </TableHead>
+                            ))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {meetings.map(m => {
+                            const buddy = buddies.find(b => b.id === m.buddyId);
+                            const partNames = m.participants
+                                .map(pid => participants.find(p => p.id === pid)?.name || "Unknown")
+                                .join(", ");
+                            const isCanceled = m.status === "canceled";
+                            const cfg = statusConfig[m.status] ?? statusConfig.scheduled;
+
+                            return (
+                                <TableRow
+                                    key={m.id}
+                                    className={`border-b border-slate-100 last:border-0 hover:bg-blue-50/20 ${isCanceled ? "opacity-50" : ""}`}
+                                >
+                                    <TableCell className="px-3 py-2 whitespace-nowrap">
+                                        <div className="font-semibold text-slate-800 text-xs">{m.start.split(" ")[0]}</div>
+                                        <div className="text-[0.7rem] text-slate-400">{m.start.split(" ")[1]} – {m.end.split(" ")[1]}</div>
+                                    </TableCell>
+                                    <TableCell className="px-3 py-2 font-medium text-slate-800 whitespace-nowrap">{buddy?.name ?? "—"}</TableCell>
+                                    <TableCell className="px-3 py-2 text-slate-700 max-w-[120px] truncate">{partNames}</TableCell>
+                                    <TableCell className="px-3 py-2">
+                                        <span className="text-xs text-slate-500 max-w-[130px] truncate block" title={m.topic ?? ""}>
+                                            {m.topic ? `"${m.topic}"` : <span className="italic opacity-50">—</span>}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell className="px-3 py-2">
+                                        <Badge className={`text-[0.65rem] font-semibold uppercase px-2 py-0.5 rounded-full border ${cfg.cls}`}>
+                                            {cfg.label}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="px-3 py-2">
+                                        {m.status === "scheduled" && (
+                                            <div className="flex items-center gap-1.5">
+                                                <Button
+                                                    size="xs"
+                                                    onClick={() => onComplete(m)}
+                                                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 cursor-pointer"
+                                                    variant="outline"
+                                                >
+                                                    <CheckCircle size={11} /> Complete
+                                                </Button>
+                                                <Button
+                                                    size="xs"
+                                                    onClick={() => onCancel(m)}
+                                                    className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 cursor-pointer"
+                                                    variant="outline"
+                                                >
+                                                    <XCircle size={11} /> Cancel
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </div>
+        </Card>
     );
 }

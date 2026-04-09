@@ -488,11 +488,6 @@ app.post('/api/meetings', requireRole('admin'), zValidator('json', createMeeting
   }
 
   await sql`
-    INSERT INTO session_logs (meeting_id, buddy_id, duration_minutes)
-    VALUES (${meeting.id}::uuid, ${buddyId}::uuid, 20)
-  `
-
-  await sql`
     UPDATE availabilities
     SET booked = true
     WHERE id = ${availabilityId}::uuid
@@ -575,6 +570,10 @@ app.post('/api/meetings/:id/complete', requireRole('admin'), async (c) => {
 
   const meeting = meetings[0]
 
+  if (meeting.status === 'completed') {
+    return c.json({ ok: true }) // idempotent — already done
+  }
+
   await sql`
     UPDATE meetings
     SET status = 'completed'::meeting_status
@@ -587,6 +586,7 @@ app.post('/api/meetings/:id/complete', requireRole('admin'), async (c) => {
     WHERE meeting_id = ${meetingId}::uuid
   `) as MeetingParticipantRow[]
 
+  // Increment score for every participant
   for (const participant of participantRows) {
     await sql`
       UPDATE users
@@ -595,9 +595,21 @@ app.post('/api/meetings/:id/complete', requireRole('admin'), async (c) => {
     `
   }
 
+  // Increment score for the buddy
+  await sql`
+    UPDATE users
+    SET score = COALESCE(score, 0) + 1
+    WHERE id = ${meeting.buddy_id}::uuid
+  `
+
+  // Compute duration from actual meeting times (fallback to 20 min)
+  const durationMinutes = Math.round(
+    (new Date(meeting.end_time).getTime() - new Date(meeting.start_time).getTime()) / 60000
+  ) || 20
+
   await sql`
     INSERT INTO session_logs (meeting_id, buddy_id, duration_minutes)
-    VALUES (${meetingId}::uuid, ${meeting.buddy_id}::uuid, 20)
+    VALUES (${meetingId}::uuid, ${meeting.buddy_id}::uuid, ${durationMinutes})
   `
 
   return c.json({ ok: true })

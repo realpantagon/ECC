@@ -18,6 +18,7 @@ export function useBuddySchedule() {
     const [selectedOwnSlotId, setSelectedOwnSlotId] = useState<string | null>(null);
     const [slotToDelete, setSlotToDelete] = useState<string | null>(null);
     const [isAddConfirmOpen, setIsAddConfirmOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!user) throw new Error("Buddy hooks require user");
 
@@ -39,17 +40,27 @@ export function useBuddySchedule() {
         }
     };
 
-    const confirmAddSlot = () => {
-        addAvailability({ buddyId: user.id, date: formDate, start: formStart, end: formEnd, booked: false });
-        setIsAddConfirmOpen(false);
-        showToast("Availability slot added", "success");
+    const confirmAddSlot = async () => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        try {
+            await addAvailability({ buddyId: user.id, date: formDate, start: formStart, end: formEnd, booked: false });
+            setIsAddConfirmOpen(false);
+            showToast("Availability slot added", "success");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const confirmDelete = () => {
-        if (slotToDelete) {
-            deleteAvailability(slotToDelete);
+    const confirmDelete = async () => {
+        if (!slotToDelete || isSubmitting) return;
+        setIsSubmitting(true);
+        try {
+            await deleteAvailability(slotToDelete);
             setSlotToDelete(null);
             showToast("Availability slot removed", "info");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -59,7 +70,8 @@ export function useBuddySchedule() {
         modalState: {
             isAddConfirmOpen, setIsAddConfirmOpen, confirmAddSlot,
             selectedOwnSlotId, setSelectedOwnSlotId,
-            slotToDelete, setSlotToDelete, confirmDelete
+            slotToDelete, setSlotToDelete, confirmDelete,
+            isSubmitting,
         },
         allBuddySlots,
         toast

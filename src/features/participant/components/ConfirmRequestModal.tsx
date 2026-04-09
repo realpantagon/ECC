@@ -9,6 +9,7 @@ interface ConfirmRequestModalProps {
     setTopics: React.Dispatch<React.SetStateAction<Record<string, string>>>;
     onConfirm: () => void;
     onClose: () => void;
+    isLoading?: boolean;
 }
 
 export function ConfirmRequestModal({
@@ -18,6 +19,7 @@ export function ConfirmRequestModal({
     setTopics,
     onConfirm,
     onClose,
+    isLoading = false,
 }: ConfirmRequestModalProps) {
     const handleTopicChange = (slotId: string, text: string) => {
         setTopics(prev => ({ ...prev, [slotId]: text }));
@@ -59,17 +61,18 @@ export function ConfirmRequestModal({
 
             <div className="flex gap-3 justify-end pt-2 border-t border-slate-100">
                 <button
-                    className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg cursor-pointer transition-colors"
+                    className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 rounded-lg cursor-pointer transition-colors"
                     onClick={onClose}
+                    disabled={isLoading}
                 >
                     Cancel
                 </button>
                 <button
                     className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg cursor-pointer transition-colors"
                     onClick={onConfirm}
-                    disabled={isConfirmDisabled}
+                    disabled={isConfirmDisabled || isLoading}
                 >
-                    Confirm Requests
+                    {isLoading ? "Submitting…" : "Confirm Requests"}
                 </button>
             </div>
         </Modal>

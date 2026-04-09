@@ -171,6 +171,7 @@ export function AdminDashboard() {
                     participants={participants}
                     onConfirm={meetingActions.handleCompleteConfirm}
                     onClose={() => meetingActions.setCompleteMeetingTarget(null)}
+                    isLoading={meetingActions.isSubmitting}
                 />
             )}
 
@@ -181,6 +182,7 @@ export function AdminDashboard() {
                     participants={participants}
                     onConfirm={meetingActions.handleCancelMeetingConfirm}
                     onClose={() => meetingActions.setCancelMeetingTarget(null)}
+                    isLoading={meetingActions.isSubmitting}
                 />
             )}
 
@@ -189,6 +191,7 @@ export function AdminDashboard() {
                     target={meetingActions.cancelRequestTarget}
                     onConfirm={meetingActions.handleCancelRequestConfirm}
                     onClose={() => meetingActions.setCancelRequestTarget(null)}
+                    isLoading={meetingActions.isSubmitting}
                 />
             )}
 

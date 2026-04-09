@@ -14,6 +14,7 @@ export function useParticipantSlots() {
     const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [topics, setTopics] = useState<Record<string, string>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!user) throw new Error("Participant hooks require user");
 
@@ -114,18 +115,24 @@ export function useParticipantSlots() {
             showToast("Topic is required for each session", "info");
             return;
         }
-        await Promise.all(selectedSlots.map(slotId => requestSlot(user.id, slotId, topics[slotId].trim())));
-        setSelectedSlots([]);
-        setTopics({});
-        setIsConfirmModalOpen(false);
-        showToast("Reservation request sent", "success");
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        try {
+            await Promise.all(selectedSlots.map(slotId => requestSlot(user.id, slotId, topics[slotId].trim())));
+            setSelectedSlots([]);
+            setTopics({});
+            setIsConfirmModalOpen(false);
+            showToast("Reservation request sent", "success");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return {
         mySettings: { weekFilter, setWeekFilter, viewMode, setViewMode },
         slotsCtx: { visibleSlots, weeklySlots, pendingRequests, activeMeetings, reservedCountByWeek, selectedCountByWeek, selectedSlots },
         handleToggleSlot,
-        modalState: { isConfirmModalOpen, setIsConfirmModalOpen, topics, setTopics, handleConfirmSelection },
+        modalState: { isConfirmModalOpen, setIsConfirmModalOpen, topics, setTopics, handleConfirmSelection, isSubmitting },
         toast,
         myMeetings,
     };

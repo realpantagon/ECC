@@ -6,9 +6,10 @@ interface DeleteSlotModalProps {
     slot: Availability | null;
     onConfirm: () => void;
     onClose: () => void;
+    isLoading?: boolean;
 }
 
-export function DeleteSlotModal({ slot, onConfirm, onClose }: DeleteSlotModalProps) {
+export function DeleteSlotModal({ slot, onConfirm, onClose, isLoading = false }: DeleteSlotModalProps) {
     return (
         <Modal onClose={onClose}>
             <div className="text-center">
@@ -30,16 +31,18 @@ export function DeleteSlotModal({ slot, onConfirm, onClose }: DeleteSlotModalPro
                 </p>
                 <div className="flex gap-3 justify-center">
                     <button
-                        className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                        className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 rounded-lg transition-colors cursor-pointer"
                         onClick={onClose}
+                        disabled={isLoading}
                     >
                         Cancel
                     </button>
                     <button
-                        className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors cursor-pointer"
+                        className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors cursor-pointer"
                         onClick={onConfirm}
+                        disabled={isLoading}
                     >
-                        Delete Slot
+                        {isLoading ? "Deleting…" : "Delete Slot"}
                     </button>
                 </div>
             </div>

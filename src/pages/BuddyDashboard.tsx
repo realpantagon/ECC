@@ -72,6 +72,7 @@ export function BuddyDashboard() {
                     end={formState.formEnd}
                     onConfirm={modalState.confirmAddSlot}
                     onClose={() => modalState.setIsAddConfirmOpen(false)}
+                    isLoading={modalState.isSubmitting}
                 />
             )}
 
@@ -113,6 +114,7 @@ export function BuddyDashboard() {
                     slot={availabilities.find(a => a.id === modalState.slotToDelete) || null}
                     onConfirm={modalState.confirmDelete}
                     onClose={() => modalState.setSlotToDelete(null)}
+                    isLoading={modalState.isSubmitting}
                 />
             )}
 

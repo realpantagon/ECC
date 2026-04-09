@@ -5,9 +5,10 @@ interface AddSlotConfirmModalProps {
     end: string;
     onConfirm: () => void;
     onClose: () => void;
+    isLoading?: boolean;
 }
 
-export function AddSlotConfirmModal({ date, start, end, onConfirm, onClose }: AddSlotConfirmModalProps) {
+export function AddSlotConfirmModal({ date, start, end, onConfirm, onClose, isLoading = false }: AddSlotConfirmModalProps) {
     const formattedDate = new Date(date).toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
@@ -25,16 +26,18 @@ export function AddSlotConfirmModal({ date, start, end, onConfirm, onClose }: Ad
             </div>
             <div className="flex gap-3 justify-end">
                 <button
-                    className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                    className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 rounded-lg transition-colors cursor-pointer"
                     onClick={onClose}
+                    disabled={isLoading}
                 >
                     Cancel
                 </button>
                 <button
-                    className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors cursor-pointer"
+                    className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors cursor-pointer"
                     onClick={onConfirm}
+                    disabled={isLoading}
                 >
-                    Add Slot
+                    {isLoading ? "Adding…" : "Add Slot"}
                 </button>
             </div>
         </Modal>

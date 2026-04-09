@@ -9,9 +9,10 @@ interface CompleteMeetingModalProps {
     participants: User[];
     onConfirm: () => void;
     onClose: () => void;
+    isLoading?: boolean;
 }
 
-export function CompleteMeetingModal({ meeting, buddies, participants, onConfirm, onClose }: CompleteMeetingModalProps) {
+export function CompleteMeetingModal({ meeting, buddies, participants, onConfirm, onClose, isLoading = false }: CompleteMeetingModalProps) {
     const buddy = buddies.find(b => b.id === meeting.buddyId);
     const partNames = meeting.participants.map(pid => participants.find(p => p.id === pid)?.name || "Unknown").join(", ");
 
@@ -32,11 +33,11 @@ export function CompleteMeetingModal({ meeting, buddies, participants, onConfirm
                 <div><span className="text-slate-500">Participant:</span> <strong>{partNames}</strong></div>
             </div>
             <div className="flex gap-3 justify-end">
-                <button className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg cursor-pointer" onClick={onClose}>
+                <button className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 rounded-lg cursor-pointer" onClick={onClose} disabled={isLoading}>
                     Cancel
                 </button>
-                <button className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg cursor-pointer" onClick={onConfirm}>
-                    <CheckCircle size={14} /> Yes, Mark Complete
+                <button className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg cursor-pointer" onClick={onConfirm} disabled={isLoading}>
+                    <CheckCircle size={14} /> {isLoading ? "Saving…" : "Yes, Mark Complete"}
                 </button>
             </div>
         </Modal>

@@ -33,8 +33,12 @@ export function Navbar() {
     const [viewDropdownOpen, setViewDropdownOpen] = useState(false);
 
     const handleLogout = () => {
+        if (user?.role === "buddy") {
+            navigate("/login/buddy");
+        } else {
+            navigate("/");
+        }
         logout();
-        navigate("/");
     };
 
     const activeAdminView = resolveAdminDashboardView(searchParams.get("view"));

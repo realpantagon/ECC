@@ -70,6 +70,7 @@ export function ParticipantDashboard() {
                     setTopics={modalState.setTopics}
                     onConfirm={modalState.handleConfirmSelection}
                     onClose={() => modalState.setIsConfirmModalOpen(false)}
+                    isLoading={modalState.isSubmitting}
                 />
             )}
 

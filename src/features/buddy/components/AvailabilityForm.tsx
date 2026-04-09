@@ -25,41 +25,48 @@ export function AvailabilityForm({ date, setDate, start, onStartChange, end, onA
                 </div>
             </CardHeader>
             <CardContent>
-                <form onSubmit={onAddSubmit} className="flex flex-col sm:flex-row gap-3 items-end">
-                    <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                <form
+                    onSubmit={onAddSubmit}
+                    className="flex flex-col gap-3 sm:flex-row sm:items-end"
+                >
+                    <div className="w-full sm:flex-1 flex flex-col gap-1.5">
                         <label className="text-xs font-medium text-slate-600">Date</label>
                         <Input
                             type="date"
                             value={date}
                             onChange={e => setDate(e.target.value)}
                             required
-                            className="bg-white"
+                            className="bg-white w-full"
                         />
                     </div>
-                    <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+
+                    <div className="w-full sm:flex-1 flex flex-col gap-1.5">
                         <label className="text-xs font-medium text-slate-600">Start Time</label>
                         <Input
                             type="time"
                             value={start}
                             onChange={e => onStartChange(e.target.value)}
                             required
-                            className="bg-white"
+                            className="bg-white w-full"
                         />
                     </div>
-                    <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+
+                    <div className="w-full sm:flex-1 flex flex-col gap-1.5">
                         <label className="text-xs font-medium text-slate-600">End Time</label>
                         <Input
                             type="time"
                             value={end}
                             disabled
-                            className="bg-slate-50 opacity-60 cursor-not-allowed"
+                            className="bg-slate-50 opacity-60 cursor-not-allowed w-full"
                         />
                     </div>
+
                     <Button
                         type="submit"
-                        className="bg-blue-600 hover:bg-blue-700 text-white shrink-0 w-full sm:w-auto cursor-pointer"
+                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1"
                     >
-                        <Plus size={15} /> Add Slot
+                        <Plus size={15} />
+                        Add Slot
                     </Button>
                 </form>
             </CardContent>

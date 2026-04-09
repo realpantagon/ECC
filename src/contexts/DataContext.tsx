@@ -62,9 +62,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    fetchData().catch((error) => {
-      console.error('Failed to fetch bootstrap data:', error)
-    })
+    const timeoutId = window.setTimeout(() => {
+      fetchData().catch((error) => {
+        console.error('Failed to fetch bootstrap data:', error)
+      })
+    }, 1000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
   }, [user?.id, fetchData])
 
   const addAvailability = async (availability: Omit<Availability, 'id'>) => {

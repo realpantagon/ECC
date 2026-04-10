@@ -79,7 +79,7 @@ export function AvailabilityForm({ date, setDate, start, onStartChange, end, onA
                         className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1"
                     >
                         <Plus size={15} />
-                        Add Slot
+                        Add Time Slot
                     </Button>
                 </form>
             </CardContent>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useData } from "../hooks/useData";
 import { useAuth } from "../hooks/useAuth";
 import { useParticipantSlots } from "../features/participant/hooks/useParticipantSlots";
@@ -7,11 +8,13 @@ import { MeetingCards } from "../features/participant/components/MeetingCards";
 import { AvailableSessionsCalendar } from "../features/participant/components/AvailableSessionsCalendar";
 import { SlotSelectionBar } from "../features/participant/components/SlotSelectionBar";
 import { ConfirmRequestModal } from "../features/participant/components/ConfirmRequestModal";
+import { PendingSlotDetailModal } from "../features/participant/components/PendingSlotDetailModal.tsx";
 import { Toast } from "../shared/components/Toast";
 
 export function ParticipantDashboard() {
     const { user } = useAuth();
     const { availabilities, requests, users } = useData();
+    const [viewingPendingSlotId, setViewingPendingSlotId] = useState<string | null>(null);
     const {
         mySettings,
         slotsCtx,
@@ -24,6 +27,8 @@ export function ParticipantDashboard() {
     if (!user) return null;
 
     const completedCount = myMeetings.filter(m => m.status === 'completed').length;
+    const viewingPendingRequest = slotsCtx.pendingRequests.find((request) => request.availabilityId === viewingPendingSlotId);
+    const viewingPendingSlot = availabilities.find((slot) => slot.id === viewingPendingSlotId);
 
     return (
         <div className="py-6 flex flex-col gap-6 font-[Inter,sans-serif]">
@@ -52,6 +57,7 @@ export function ParticipantDashboard() {
                 activeMeetings={slotsCtx.activeMeetings}
                 selectedSlots={slotsCtx.selectedSlots}
                 handleToggleSlot={handleToggleSlot}
+                onViewPendingSlot={setViewingPendingSlotId}
                 reservedCountByWeek={slotsCtx.reservedCountByWeek}
                 selectedCountByWeek={slotsCtx.selectedCountByWeek}
             />
@@ -71,6 +77,14 @@ export function ParticipantDashboard() {
                     onConfirm={modalState.handleConfirmSelection}
                     onClose={() => modalState.setIsConfirmModalOpen(false)}
                     isLoading={modalState.isSubmitting}
+                />
+            )}
+
+            {viewingPendingSlot && viewingPendingRequest && (
+                <PendingSlotDetailModal
+                    slot={viewingPendingSlot}
+                    requestTopic={viewingPendingRequest.topic}
+                    onClose={() => setViewingPendingSlotId(null)}
                 />
             )}
 

@@ -107,6 +107,15 @@ export function useParticipantSlots() {
             setTopics({});
             setIsConfirmModalOpen(false);
             showToast("Reservation request sent", "success");
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Failed to request slot";
+
+            if (message.includes("Slot already requested by another participant")) {
+                showToast("Slot already requested by another participant", "info");
+                return;
+            }
+
+            showToast(message, "info");
         } finally {
             setIsSubmitting(false);
         }

@@ -29,7 +29,7 @@ export function LoginPage() {
     };
 
     return (
-        <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-background to-indigo-50 flex items-center justify-center p-4 transition-colors">
+        <div className="relative min-h-screen flex items-center justify-center p-4 ">
             <div className="absolute right-4 top-4">
                 <ThemeToggle />
             </div>

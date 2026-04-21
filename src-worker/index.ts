@@ -391,6 +391,17 @@ app.post('/api/slot-requests', requireRole('participant'), zValidator('json', sl
     return c.json({ message: 'Forbidden: can only request slots for yourself' }, 403)
   }
 
+  const existingRequestForSlot = (await sql`
+    SELECT id
+    FROM slot_requests
+    WHERE availability_id = ${payload.availabilityId}::uuid
+    LIMIT 1
+  `) as Pick<SlotRequestRow, 'id'>[]
+
+  if (existingRequestForSlot.length > 0) {
+    return c.json({ message: 'Slot already requested by another participant' }, 409)
+  }
+
   const inserted = (await sql`
     INSERT INTO slot_requests (participant_id, availability_id, topic)
     VALUES (${payload.participantId}::uuid, ${payload.availabilityId}::uuid, ${payload.topic})

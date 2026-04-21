@@ -3,6 +3,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { LogOut } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import { ThemeToggle } from "../ThemeToggle";
 
 export function ParticipantNavbar() {
     const { user, logout } = useAuth();
@@ -28,6 +29,7 @@ export function ParticipantNavbar() {
                 {/* Right: User info + Logout */}
                 {user && (
                     <div className="flex items-center gap-2 shrink-0">
+                        <ThemeToggle />
                         <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-full">
                             <span className="font-medium text-xs sm:text-sm text-slate-700 max-w-[80px] sm:max-w-[140px] truncate">
                                 {user.name}

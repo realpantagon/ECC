@@ -8,6 +8,7 @@ import { BuddyDashboard } from "./pages/BuddyDashboard";
 import { ParticipantDashboard } from "./pages/ParticipantDashboard";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { Toaster } from "./components/ui/sonner";
+import { useTheme } from "./hooks/useTheme";
 
 type DashboardView = "admin" | "buddy" | "participant";
 
@@ -44,14 +45,16 @@ function DashboardRouter() {
 }
 
 function App() {
+  const { theme } = useTheme();
+
   return (
-    <>
+    <div className="min-h-screen bg-background text-foreground transition-colors">
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/*" element={<DashboardRouter />} />
       </Routes>
-      <Toaster position="top-right" richColors />
-    </>
+      <Toaster position="top-right" richColors theme={theme} />
+    </div>
   );
 }
 

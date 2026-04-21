@@ -52,13 +52,13 @@ export function CalendarMonthView({ slots, renderSlot, monthOffset = 0 }: Calend
     })();
 
     return (
-        <div className="bg-white/85 backdrop-blur-md border border-blue-100 rounded-2xl shadow-md shadow-blue-100/30 overflow-x-auto p-3">
+        <div className="bg-white/85 backdrop-blur-md border border-blue-100 rounded-2xl shadow-md shadow-blue-100/30 overflow-x-auto p-3 dark:border-slate-700 dark:bg-slate-900/60">
             <div className="text-base font-semibold text-center text-slate-700 mb-3">{currentMonthName}</div>
 
-            <div className="grid grid-cols-5 gap-0.5 border border-blue-100 rounded-lg overflow-hidden bg-blue-100">
+            <div className="grid grid-cols-5 gap-0.5 border border-blue-100 rounded-lg overflow-hidden bg-blue-100 dark:border-slate-700 dark:bg-slate-800/60">
                 {/* Day headers */}
                 {DAYS_OF_WEEK.map((day) => (
-                    <div key={day} className="bg-blue-50 px-2 py-1.5 text-center text-xs font-semibold uppercase tracking-wide text-blue-500">
+                    <div key={day} className="bg-blue-50 px-2 py-1.5 text-center text-xs font-semibold uppercase tracking-wide text-blue-500 dark:bg-slate-800 dark:text-blue-400">
                         {day}
                     </div>
                 ))}
@@ -66,7 +66,7 @@ export function CalendarMonthView({ slots, renderSlot, monthOffset = 0 }: Calend
                 {/* Date cells */}
                 {monthDates.map((dateStr, index) => {
                     if (!dateStr) {
-                        return <div key={`empty-${index}`} className="bg-white/60 min-h-[90px]" />;
+                        return <div key={`empty-${index}`} className="bg-white/60 min-h-[90px] dark:bg-slate-900/80" />;
                     }
 
                     const dayNum = new Date(dateStr).getDate();
@@ -78,7 +78,7 @@ export function CalendarMonthView({ slots, renderSlot, monthOffset = 0 }: Calend
                     return (
                         <div
                             key={dateStr}
-                            className={`bg-white min-h-[90px] p-1.5 flex flex-col ${isToday ? "outline outline-2 outline-blue-400 outline-offset-[-2px]" : ""}`}
+                            className={`bg-white min-h-[90px] p-1.5 flex flex-col dark:bg-slate-900/90 ${isToday ? "outline outline-2 outline-blue-400 outline-offset-[-2px]" : ""}`}
                         >
                             <div className={`text-xs font-medium mb-1 flex ${isToday ? "justify-start" : "justify-end"}`}>
                                 {isToday ? (

@@ -39,7 +39,7 @@ export function AvailableSessionsCalendar({
     selectedCountByWeek,
 }: AvailableSessionsCalendarProps) {
     const toggleBtn = (active: boolean) =>
-        `px-3 py-1.5 text-xs font-medium rounded-md border-none cursor-pointer transition-all ${active ? "bg-white shadow-sm text-blue-600" : "bg-transparent text-slate-500 hover:text-slate-700"}`;
+        `px-3 py-1.5 text-xs font-medium rounded-md border cursor-pointer transition-all ${active ? "bg-white shadow-sm text-blue-600 border-blue-200 dark:bg-blue-600 dark:text-white dark:border-blue-500" : "bg-transparent text-slate-500 border-transparent hover:text-slate-700 hover:bg-blue-50/70 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700/60"}`;
 
     const renderSlotContent = (slot: Availability, isMonthView: boolean) => {
         const slotRequests = requests.filter(r => r.availabilityId === slot.id);
@@ -68,13 +68,13 @@ export function AvailableSessionsCalendar({
             return (
                 <div
                     className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.64rem] font-medium whitespace-nowrap transition-all
-                        ${isWeekReserved ? "bg-slate-50 border border-slate-200 text-slate-400 opacity-60" :
-                        isMeeting ? "bg-emerald-50 border border-emerald-300 text-emerald-700" :
-                        isReserved ? "bg-slate-100 border border-slate-300 text-slate-500 opacity-80" :
-                        isPendingOther ? "bg-slate-50 border border-slate-200 text-slate-400 opacity-70" :
-                        isJoined ? "bg-amber-50 border border-amber-300 text-amber-700 hover:bg-amber-100 cursor-pointer" :
-                        isSelected ? "bg-blue-600 border-blue-600 text-white" :
-                        "bg-blue-50 border border-blue-200 text-blue-500 hover:bg-blue-100 cursor-pointer"}`}
+                        ${isWeekReserved ? "bg-slate-50 border border-slate-200 text-slate-400 opacity-60 dark:bg-slate-800/80 dark:border-slate-700 dark:text-slate-500" :
+                        isMeeting ? "bg-emerald-50 border border-emerald-300 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400" :
+                        isReserved ? "bg-slate-100 border border-slate-300 text-slate-500 opacity-80 dark:bg-slate-800/80 dark:border-slate-700 dark:text-slate-400" :
+                        isPendingOther ? "bg-slate-50 border border-slate-200 text-slate-400 opacity-70 dark:bg-slate-800/60 dark:border-slate-700 dark:text-slate-500" :
+                        isJoined ? "bg-amber-50 border border-amber-300 text-amber-700 hover:bg-amber-100 cursor-pointer dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-900/50" :
+                        isSelected ? "bg-blue-600 border-blue-600 text-white dark:bg-blue-500 dark:border-blue-500" :
+                        "bg-blue-50 border border-blue-200 text-blue-500 hover:bg-blue-100 cursor-pointer dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/50"}`}
                     title={
                         isWeekReserved
                             ? 'Weekly limit reached (3/3)'
@@ -98,27 +98,27 @@ export function AvailableSessionsCalendar({
         return (
             <div
                 className={`text-xs rounded-lg p-1.5 flex flex-col gap-0.5 transition-all
-                    ${isWeekReserved ? "bg-slate-50 border border-slate-200 opacity-60" :
-                    isMeeting ? "bg-emerald-50 border border-emerald-200" :
-                    isReserved ? "bg-slate-100 border border-slate-300 opacity-80" :
-                    isPendingOther ? "bg-slate-50 border border-slate-200 opacity-70" :
-                    isJoined ? "bg-amber-50 border border-amber-300 hover:bg-amber-100 cursor-pointer" :
-                    isSelected ? "bg-blue-600 border-blue-600 text-white" :
-                    "bg-blue-50 border border-blue-200 hover:bg-blue-100 cursor-pointer"}`}
+                    ${isWeekReserved ? "bg-slate-50 border border-slate-200 opacity-60 dark:bg-slate-800/80 dark:border-slate-700" :
+                    isMeeting ? "bg-emerald-50 border border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800" :
+                    isReserved ? "bg-slate-100 border border-slate-300 opacity-80 dark:bg-slate-800/80 dark:border-slate-700" :
+                    isPendingOther ? "bg-slate-50 border border-slate-200 opacity-70 dark:bg-slate-800/60 dark:border-slate-700" :
+                    isJoined ? "bg-amber-50 border border-amber-300 hover:bg-amber-100 cursor-pointer dark:bg-amber-900/30 dark:border-amber-800 dark:hover:bg-amber-900/50" :
+                    isSelected ? "bg-blue-600 border-blue-600 text-white dark:bg-blue-500 dark:border-blue-500" :
+                    "bg-blue-50 border border-blue-200 hover:bg-blue-100 cursor-pointer dark:bg-blue-900/30 dark:border-blue-800 dark:hover:bg-blue-900/50"}`}
                 style={{ cursor: isDisabled && !isJoined ? 'default' : 'pointer', opacity: isWeekReserved ? 0.7 : 1 }}
                 onClick={handleSlotClick}
             >
-                <div className="flex items-center gap-1 font-medium">
+                <div className={`flex items-center gap-1 font-medium ${isSelected ? 'text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                     {isWeekReserved ? <Lock size={10} /> : <Clock size={10} />}
                     <span className="hidden sm:inline">{slot.start} - {slot.end}</span>
                     <span className="sm:hidden">{slot.start}</span>
                 </div>
                 {!isMeeting && (
-                    <div className={`text-[0.6rem] ${isSelected ? "text-blue-100" : "text-slate-400"}`}>
+                    <div className={`text-[0.6rem] ${isSelected ? "text-blue-100 dark:text-blue-200" : "text-slate-400 dark:text-slate-500"}`}>
                         {isWeekReserved ? 'Limit (3/3)' : `${slotRequests.length} participant${slotRequests.length !== 1 ? 's' : ''}`}
                     </div>
                 )}
-                <div className={`text-[0.65rem] font-semibold ${isSelected ? "text-white" : isMeeting ? "text-emerald-600" : isJoined ? "text-amber-700" : isReserved || isPendingOther ? "text-slate-500" : isWeekReserved ? "text-slate-400" : "text-blue-500"}`}>
+                <div className={`text-[0.65rem] font-semibold ${isSelected ? "text-white" : isMeeting ? "text-emerald-600 dark:text-emerald-400" : isJoined ? "text-amber-700 dark:text-amber-400" : isReserved || isPendingOther ? "text-slate-500 dark:text-slate-400" : isWeekReserved ? "text-slate-400 dark:text-slate-500" : "text-blue-500 dark:text-blue-400"}`}>
                     {isMeeting ? "CONFIRMED" : isReserved ? "RESERVED" : isJoined ? "MY PENDING" : isPendingOther ? "PENDING ADMIN" : isSelected ? "SELECTED" : isWeekReserved ? "LIMIT REACHED" : "Available"}
                 </div>
             </div>
@@ -134,7 +134,7 @@ export function AvailableSessionsCalendar({
                     <p className="text-xs text-slate-400 mt-0.5">Reservation limit: max 3 slots per participant per week.</p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                    <div className="flex gap-1 bg-blue-50 border border-blue-100 p-1 rounded-lg">
+                    <div className="flex gap-1 bg-blue-50 border border-blue-100 p-1 rounded-lg dark:bg-slate-800/70 dark:border-slate-700">
                         <button onClick={() => setViewMode('month')} className={`${toggleBtn(viewMode === 'month')} flex items-center gap-1.5`}>
                             <CalendarDays size={13} /> Month
                         </button>
@@ -143,7 +143,7 @@ export function AvailableSessionsCalendar({
                         </button>
                     </div>
                     {viewMode === 'calendar' && (
-                        <div className="flex gap-1 bg-blue-50 border border-blue-100 p-1 rounded-lg">
+                        <div className="flex gap-1 bg-blue-50 border border-blue-100 p-1 rounded-lg dark:bg-slate-800/70 dark:border-slate-700">
                             <button onClick={() => setWeekFilter('this_week')} className={toggleBtn(weekFilter === 'this_week')}>This Week</button>
                             <button onClick={() => setWeekFilter('next_week')} className={toggleBtn(weekFilter === 'next_week')}>Next Week</button>
                         </div>

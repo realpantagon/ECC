@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 interface ToastProps {
     message: string;
-    type: "success" | "info";
+    type: "success" | "info" | "error";
 }
 
 /**
@@ -13,6 +13,11 @@ export function Toast({ message, type }: ToastProps) {
     useEffect(() => {
         if (type === "success") {
             toast.success(message);
+            return;
+        }
+
+        if (type === "error") {
+            toast.error(message);
             return;
         }
 

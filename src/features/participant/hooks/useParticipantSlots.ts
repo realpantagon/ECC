@@ -111,11 +111,11 @@ export function useParticipantSlots() {
             const message = error instanceof Error ? error.message : "Failed to request slot";
 
             if (message.includes("Slot already requested by another participant")) {
-                showToast("Slot already requested by another participant", "info");
+                showToast("Slot already requested by another participant", "error");
                 return;
             }
 
-            showToast(message, "info");
+            showToast(message, "error");
         } finally {
             setIsSubmitting(false);
         }

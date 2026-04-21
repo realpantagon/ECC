@@ -17,12 +17,12 @@ export function BuddyCalendarSection({ availabilities, buddies, onSlotClick }: B
     const [weekOffset, setWeekOffset] = useState<0 | 1>(0);
 
     const toggleBtn = (active: boolean) =>
-        `px-3 py-1.5 text-xs font-medium rounded-md border-none cursor-pointer transition-all ${active ? "bg-white shadow-sm text-blue-600" : "bg-transparent text-slate-500 hover:text-slate-700"}`;
+        `px-3 py-1.5 text-xs font-medium rounded-md border cursor-pointer transition-all ${active ? "bg-white shadow-sm text-blue-600 border-blue-200 dark:bg-blue-600 dark:text-white dark:border-blue-500" : "bg-transparent text-slate-500 border-transparent hover:text-slate-700 hover:bg-blue-50/70 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700/60"}`;
 
     const renderSlot = (slot: Availability, isWeekView: boolean) => {
         const buddyIndex = buddies.findIndex(b => b.id === slot.buddyId);
         const color = slot.booked
-            ? 'bg-purple-600 border-purple-700 text-white shadow-sm font-bold z-10'
+            ? 'bg-purple-600 border-purple-700 text-white shadow-sm font-bold z-10 dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-400 dark:shadow-none'
             : (BUDDY_PILL_COLORS[buddyIndex % BUDDY_PILL_COLORS.length] ?? BUDDY_PILL_COLORS[0]);
         const buddy = buddies[buddyIndex];
 
@@ -52,7 +52,7 @@ export function BuddyCalendarSection({ availabilities, buddies, onSlotClick }: B
                     <span className="hidden sm:inline">{slot.start} - {slot.end}</span>
                     <span className="sm:hidden">{slot.start}</span>
                 </div>
-                <div className={`text-[0.62rem] ${slot.booked ? "text-purple-100" : "text-slate-600"}`}>
+                <div className={`text-[0.62rem] ${slot.booked ? "text-purple-100 dark:text-purple-400" : "text-slate-600 dark:text-slate-400"}`}>
                     {buddy?.name || 'Buddy'}
                 </div>
             </div>
@@ -65,12 +65,12 @@ export function BuddyCalendarSection({ availabilities, buddies, onSlotClick }: B
                 <h2 className="text-sm font-semibold text-slate-800">Buddy Availability Calendar</h2>
                 <div className="flex items-center gap-2 flex-wrap">
                     {viewMode === 'calendar' && (
-                        <div className="flex gap-1 bg-emerald-50 border border-emerald-100 p-1 rounded-lg">
+                        <div className="flex gap-1 bg-emerald-50 border border-emerald-100 p-1 rounded-lg dark:bg-slate-800/70 dark:border-slate-700">
                             <button onClick={() => setWeekOffset(0)} className={toggleBtn(weekOffset === 0)}>This Week</button>
                             <button onClick={() => setWeekOffset(1)} className={toggleBtn(weekOffset === 1)}>Next Week</button>
                         </div>
                     )}
-                    <div className="flex gap-1 bg-blue-50 border border-blue-100 p-1 rounded-lg">
+                    <div className="flex gap-1 bg-blue-50 border border-blue-100 p-1 rounded-lg dark:bg-slate-800/70 dark:border-slate-700">
                         <button onClick={() => setViewMode('month')} className={`${toggleBtn(viewMode === 'month')} flex items-center gap-1.5`}>
                             <CalendarDays size={13} /> Month
                         </button>
@@ -84,12 +84,12 @@ export function BuddyCalendarSection({ availabilities, buddies, onSlotClick }: B
             <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
                 {/* Legend */}
                 <div className="flex gap-4 flex-wrap">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium border-r border-slate-200 pr-4">
-                        <span className="w-3 h-3 rounded-sm bg-purple-600" />
+                    <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium border-r border-slate-200 pr-4 dark:text-slate-400 dark:border-slate-700">
+                        <span className="w-3 h-3 rounded-sm bg-purple-600 dark:bg-purple-500" />
                         Booked Session
                     </div>
                     {buddies.map((b, i) => (
-                        <div key={b.id} className="flex items-center gap-1.5 text-xs text-slate-500">
+                        <div key={b.id} className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                             <span className={`w-2.5 h-2.5 rounded-full ${BUDDY_BG_COLORS[i % BUDDY_BG_COLORS.length]}`} />
                             {b.name}
                         </div>

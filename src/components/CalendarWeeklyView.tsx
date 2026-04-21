@@ -33,7 +33,7 @@ export function CalendarWeeklyView({ slots, renderSlot, weekOffset = 1 }: Calend
     })();
 
     return (
-        <div className="bg-white/85 backdrop-blur-md border border-blue-100 rounded-2xl shadow-md shadow-blue-100/30 overflow-x-auto p-3">
+        <div className="bg-white/85 backdrop-blur-md border border-blue-100 rounded-2xl shadow-md shadow-blue-100/30 overflow-x-auto p-3 dark:border-slate-700 dark:bg-slate-900/60">
             <div className="grid grid-cols-5 gap-2 min-w-[500px]">
                 {weekDates.map((dateStr, index) => {
                     const dayName = DAYS_OF_WEEK[index];
@@ -44,9 +44,9 @@ export function CalendarWeeklyView({ slots, renderSlot, weekOffset = 1 }: Calend
                     const isToday = dateStr === todayStr;
 
                     return (
-                        <div key={dateStr} className="flex flex-col bg-blue-50/40 border border-blue-100 rounded-lg overflow-hidden">
+                        <div key={dateStr} className="flex flex-col bg-blue-50/40 border border-blue-100 rounded-lg overflow-hidden dark:border-slate-700 dark:bg-slate-900/80">
                             {/* Column header */}
-                            <div className={`px-2 py-2 text-center font-semibold uppercase text-xs tracking-wide border-b ${isToday ? "bg-blue-600 text-white border-blue-700" : "bg-blue-50 text-blue-500 border-blue-100"}`}>
+                            <div className={`px-2 py-2 text-center font-semibold uppercase text-xs tracking-wide border-b ${isToday ? "bg-blue-600 text-white border-blue-700" : "bg-blue-50 text-blue-500 border-blue-100"} dark:border-slate-700`}>
                                 <div>{dayName.substring(0, 3)}</div>
                                 <div className="text-[0.6rem] font-normal opacity-80 mt-0.5">{shortDate}</div>
                             </div>

@@ -22,7 +22,7 @@ export function BuddyStatsChart({ stats }: BuddyStatsChartProps) {
                 <BarChart3 size={18} className="text-blue-600" />
                 <h2 className="text-base sm:text-lg font-semibold text-slate-800">Buddy Session Statistics</h2>
             </div>
-            <div className="flex flex-col gap-3 p-3 border border-blue-100 rounded-xl bg-gradient-to-b from-blue-50/40 to-transparent">
+            <div className="flex flex-col gap-3 p-3 border border-blue-100 rounded-xl bg-white/70 dark:bg-slate-900/70 dark:border-slate-700">
                 {sorted.map((stat, index) => {
                     const barWidth = (stat.sessions / maxSessions) * 100;
                     return (

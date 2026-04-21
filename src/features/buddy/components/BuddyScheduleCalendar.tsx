@@ -32,17 +32,17 @@ export function BuddyScheduleCalendar({
     onDeleteSlot,
 }: BuddyScheduleCalendarProps) {
     const toggleBtn = (active: boolean) =>
-        `px-3 py-1.5 text-xs font-medium rounded-md border-none cursor-pointer transition-all ${active ? "bg-white shadow-sm text-blue-600" : "bg-transparent text-slate-500 hover:text-slate-700"}`;
+        `px-3 py-1.5 text-xs font-medium rounded-md border cursor-pointer transition-all ${active ? "bg-white shadow-sm text-blue-600 border-blue-200 dark:bg-blue-600 dark:text-white dark:border-blue-500" : "bg-transparent text-slate-500 border-transparent hover:text-slate-700 hover:bg-blue-50/70 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700/60"}`;
 
     const renderMonthSlot = (slot: Availability) => {
         const isMine = slot.buddyId === currentUserId;
         const buddyName = isMine ? 'Me' : (users.find(u => u.id === slot.buddyId)?.name || 'Unknown');
         // Own booked = purple | Own available = green | Others = blue
         const colorClass = !isMine
-            ? "bg-blue-50 border border-blue-100 text-blue-300"
+            ? "bg-blue-50 border border-blue-100 text-blue-400 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400"
             : slot.booked
-                ? "bg-purple-50 border border-purple-300 text-purple-700 hover:bg-purple-100"
-                : "bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-emerald-100";
+                ? "bg-purple-500 border border-purple-600 text-white hover:bg-purple-600 dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/50"
+                : "bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-900/50";
         return (
             <div
                 className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.65rem] font-medium whitespace-nowrap transition-all ${colorClass}`}
@@ -61,19 +61,19 @@ export function BuddyScheduleCalendar({
         const buddyName = isMine ? 'Me' : (users.find(u => u.id === slot.buddyId)?.name || 'Unknown');
         // Own booked = purple | Own available = green | Others = blue
         const cardClass = !isMine
-            ? "bg-blue-50 border border-blue-200 opacity-75"
+            ? "bg-blue-50 border border-blue-200 opacity-75 dark:bg-blue-900/30 dark:border-blue-800"
             : slot.booked
-                ? "bg-purple-50 border border-purple-200 shadow-sm"
-                : "bg-emerald-50 border border-emerald-200 shadow-sm";
-        const labelColor = !isMine ? "text-blue-400" : slot.booked ? "text-purple-500" : "text-emerald-600";
-        const nameColor = !isMine ? "text-blue-400" : slot.booked ? "text-purple-600" : "text-emerald-600";
+                ? "bg-purple-500 border border-purple-600 shadow-sm text-white dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-400 dark:shadow-none"
+                : "bg-emerald-50 border border-emerald-200 shadow-sm dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400 dark:shadow-none";
+        const labelColor = !isMine ? "text-blue-400" : slot.booked ? "text-purple-100 dark:text-purple-300" : "text-emerald-600 dark:text-emerald-500";
+        const nameColor = !isMine ? "text-blue-400" : slot.booked ? "text-purple-200 dark:text-purple-400" : "text-emerald-600 dark:text-emerald-500";
         return (
             <div
                 className={`relative text-xs rounded-md p-1.5 flex flex-col gap-0.5 transition-all group ${cardClass}`}
                 style={{ cursor: isMine ? 'pointer' : 'default' }}
                 onClick={() => isMine && onSelectOwnSlot(slot.id)}
             >
-                <div className="flex items-center gap-1 font-medium text-slate-700">
+                <div className={`flex items-center gap-1 font-medium ${slot.booked && isMine ? 'text-white dark:text-purple-400' : 'text-slate-700 dark:text-slate-200'}`}>
                     <Clock size={10} />
                     <span className="hidden sm:inline">{slot.start} - {slot.end}</span>
                     <span className="sm:hidden">{slot.start}</span>
@@ -109,18 +109,18 @@ export function BuddyScheduleCalendar({
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                     {viewMode === 'month' && (
-                        <div className="flex gap-1 bg-amber-50 border border-amber-100 p-1 rounded-lg">
+                        <div className="flex gap-1 bg-amber-50 border border-amber-100 p-1 rounded-lg dark:bg-slate-800/70 dark:border-slate-700">
                             <button onClick={() => setMonthOffset(0)} className={toggleBtn(monthOffset === 0)}>This Month</button>
                             <button onClick={() => setMonthOffset(1)} className={toggleBtn(monthOffset === 1)}>Next Month</button>
                         </div>
                     )}
                     {viewMode === 'calendar' && (
-                        <div className="flex gap-1 bg-emerald-50 border border-emerald-100 p-1 rounded-lg">
+                        <div className="flex gap-1 bg-emerald-50 border border-emerald-100 p-1 rounded-lg dark:bg-slate-800/70 dark:border-slate-700">
                             <button onClick={() => setWeekOffset(0)} className={toggleBtn(weekOffset === 0)}>This Week</button>
                             <button onClick={() => setWeekOffset(1)} className={toggleBtn(weekOffset === 1)}>Next Week</button>
                         </div>
                     )}
-                    <div className="flex gap-1 bg-blue-50 border border-blue-100 p-1 rounded-lg">
+                    <div className="flex gap-1 bg-blue-50 border border-blue-100 p-1 rounded-lg dark:bg-slate-800/70 dark:border-slate-700">
                         <button onClick={() => setViewMode('month')} className={`${toggleBtn(viewMode === 'month')} flex items-center gap-1.5`}>
                             <CalendarDays size={14} /> Month
                         </button>

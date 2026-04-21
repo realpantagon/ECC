@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { UserCircle2, KeyRound, Eye, EyeOff } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 export function LoginPage() {
     const [username, setUsername] = useState("");
@@ -28,7 +29,10 @@ export function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+        <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-background to-indigo-50 flex items-center justify-center p-4 transition-colors">
+            <div className="absolute right-4 top-4">
+                <ThemeToggle />
+            </div>
             <div className="w-full max-w-sm">
                 <div className="bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/60 p-8 flex flex-col gap-6">
                     {/* Header */}

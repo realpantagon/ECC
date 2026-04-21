@@ -13,11 +13,11 @@ export const BUDDY_BG_COLORS = [
 
 /** Tailwind slot pill colors per buddy index (border + text + bg). */
 export const BUDDY_PILL_COLORS = [
-    'bg-blue-50 border-blue-300 text-blue-600',
-    'bg-emerald-50 border-emerald-300 text-emerald-700',
-    'bg-amber-50 border-amber-300 text-amber-700',
-    'bg-violet-50 border-violet-300 text-violet-700',
-    'bg-pink-50 border-pink-300 text-pink-700',
+    'bg-blue-50 border-blue-300 text-blue-600 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400',
+    'bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400',
+    'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400',
+    'bg-violet-50 border-violet-300 text-violet-700 dark:bg-violet-900/30 dark:border-violet-800 dark:text-violet-400',
+    'bg-pink-50 border-pink-300 text-pink-700 dark:bg-pink-900/30 dark:border-pink-800 dark:text-pink-400',
 ] as const;
 
 /** Weekday short names Mon–Fri. */

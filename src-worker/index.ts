@@ -392,37 +392,10 @@ app.post('/api/slot-requests', requireRole('participant'), zValidator('json', sl
   }
 
   const inserted = (await sql`
-    WITH updated_availability AS (
-      UPDATE availabilities
-      SET booked = true
-      WHERE id = ${payload.availabilityId}::uuid
-        AND booked = false
-      RETURNING id
-    ), inserted_request AS (
-      INSERT INTO slot_requests (participant_id, availability_id, topic)
-      SELECT ${payload.participantId}::uuid, ${payload.availabilityId}::uuid, ${payload.topic}
-      FROM updated_availability
-      ON CONFLICT (participant_id, availability_id) DO NOTHING
-      RETURNING id, participant_id, availability_id, topic
-    )
-    SELECT id, participant_id, availability_id, topic
-    FROM inserted_request
+    INSERT INTO slot_requests (participant_id, availability_id, topic)
+    VALUES (${payload.participantId}::uuid, ${payload.availabilityId}::uuid, ${payload.topic})
+    RETURNING id, participant_id, availability_id, topic
   `) as SlotRequestRow[]
-
-  if (!inserted.length) {
-    const availabilityRows = (await sql`
-      SELECT id, booked
-      FROM availabilities
-      WHERE id = ${payload.availabilityId}::uuid
-      LIMIT 1
-    `) as Pick<AvailabilityRow, 'id' | 'booked'>[]
-
-    if (!availabilityRows.length) {
-      throw new HTTPException(404, { message: 'Availability not found' })
-    }
-
-    return c.json({ message: 'This slot has already been requested or booked' }, 409)
-  }
 
   return c.json({
     request: {
@@ -456,30 +429,7 @@ app.delete('/api/slot-requests/:id', requireRole('participant', 'admin'), async 
     }
   }
 
-  const deleted = (await sql`
-    DELETE FROM slot_requests
-    WHERE id = ${requestId}::uuid
-    RETURNING availability_id
-  `) as Pick<SlotRequestRow, 'availability_id'>[]
-
-  if (deleted.length > 0) {
-    await sql`
-      UPDATE availabilities a
-      SET booked = false
-      WHERE a.id = ${deleted[0].availability_id}::uuid
-        AND NOT EXISTS (
-          SELECT 1
-          FROM slot_requests sr
-          WHERE sr.availability_id = a.id
-        )
-        AND NOT EXISTS (
-          SELECT 1
-          FROM meetings m
-          WHERE m.availability_id = a.id
-        )
-    `
-  }
-
+  await sql`DELETE FROM slot_requests WHERE id = ${requestId}::uuid`
   return c.json({ ok: true })
 })
 
@@ -684,7 +634,7 @@ export type AppType = typeof app
 
 const worker = {
   fetch: app.fetch,
-  scheduled: async (_event: unknown, env: Bindings) => {
+  scheduled: async (_event: unknown, env: Bindings, _ctx: unknown) => {
     try {
       await pingDatabase(env)
       console.log('Scheduled keep-alive ping succeeded')

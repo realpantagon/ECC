@@ -1,57 +1,23 @@
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { LogOut, ChevronDown, LayoutDashboard } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { ThemeToggle } from "../ThemeToggle";
 
-type DashboardView = "admin" | "buddy" | "participant";
-
-function resolveAdminDashboardView(rawView: string | null): DashboardView {
-    if (rawView === "admin" || rawView === "buddy" || rawView === "participant") {
-        return rawView;
-    }
-    return "admin";
-}
-
-const VIEW_LABELS: Record<DashboardView, string> = {
-    admin: "Admin",
-    buddy: "Buddy",
-    participant: "Participant",
-};
-
 export function AdminNavbar() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [viewDropdownOpen, setViewDropdownOpen] = useState(false);
 
     const handleLogout = () => {
         navigate("/login");
         logout();
     };
 
-    const activeAdminView = resolveAdminDashboardView(searchParams.get("view"));
-
-    const handleSelectAdminView = (view: DashboardView) => {
-        const nextParams = new URLSearchParams(searchParams);
-        nextParams.set("view", view);
-        setSearchParams(nextParams);
-        setViewDropdownOpen(false);
-    };
-
-    const navPillBtn = (active: boolean) =>
-        `px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-            active
-                ? "bg-red-600 text-white shadow-sm dark:bg-red-500"
-                : "text-red-600 hover:bg-red-50 dark:text-red-300 dark:hover:bg-slate-700/70"
-        }`;
-
     return (
         <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-red-100 shadow-sm">
             <div className="max-w-6xl mx-auto px-3 sm:px-4 h-12 flex items-center justify-between gap-3">
-                {/* Left: Logo + View Switcher */}
+                {/* Left: Logo */}
                 <div className="flex items-center gap-2 min-w-0">
                     <div className="flex items-center gap-1.5 text-red-600 font-bold text-sm shrink-0">
                         <img src="/ecc.png" alt="ATS ECC" className="w-6 h-6 object-contain rounded" />
@@ -59,51 +25,6 @@ export function AdminNavbar() {
                         <span className="text-[0.6rem] font-semibold uppercase tracking-wide text-red-400 ml-1 hidden sm:inline">
                             Admin Portal
                         </span>
-                    </div>
-
-                    {/* Desktop: pill switcher */}
-                    <div className="hidden sm:flex items-center gap-0.5 border border-red-100 bg-red-50/70 rounded-lg p-0.5 ml-1 dark:border-slate-700 dark:bg-slate-800/70">
-                        {(["admin", "buddy", "participant"] as DashboardView[]).map((v) => (
-                            <button
-                                key={v}
-                                type="button"
-                                onClick={() => handleSelectAdminView(v)}
-                                className={navPillBtn(activeAdminView === v)}
-                            >
-                                {VIEW_LABELS[v]}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Mobile: dropdown */}
-                    <div className="relative sm:hidden ml-1">
-                        <button
-                            type="button"
-                            onClick={() => setViewDropdownOpen((o) => !o)}
-                            className="flex items-center gap-1 px-2.5 py-1 border border-red-200 bg-red-50 rounded-lg text-xs font-semibold text-red-600 cursor-pointer dark:border-slate-700 dark:bg-slate-800/70 dark:text-red-300"
-                        >
-                            <LayoutDashboard size={12} />
-                            {VIEW_LABELS[activeAdminView]}
-                            <ChevronDown size={12} className={`transition-transform ${viewDropdownOpen ? "rotate-180" : ""}`} />
-                        </button>
-                        {viewDropdownOpen && (
-                            <div className="absolute top-full left-0 mt-1 w-36 bg-white border border-red-100 rounded-xl shadow-lg z-50 py-1 overflow-hidden dark:bg-slate-900 dark:border-slate-700">
-                                {(["admin", "buddy", "participant"] as DashboardView[]).map((v) => (
-                                    <button
-                                        key={v}
-                                        type="button"
-                                        onClick={() => handleSelectAdminView(v)}
-                                        className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                                            activeAdminView === v
-                                                ? "bg-red-600 text-white font-semibold dark:bg-red-500"
-                                                : "text-slate-700 hover:bg-red-50 dark:text-slate-200 dark:hover:bg-slate-800"
-                                        }`}
-                                    >
-                                        {VIEW_LABELS[v]}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 </div>
 

@@ -1,5 +1,5 @@
 // Replace REDIRECT_URL with the actual destination URL when the service is ready
-const REDIRECT_URL = "https://REPLACE_ME";
+// const REDIRECT_URL = "https://REPLACE_ME";
 
 export function ServiceDownPage() {
     return (

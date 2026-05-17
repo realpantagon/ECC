@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "ecc-worker-app",
+  "name": "ats-ecc-2026",
   "main": "src-worker/index.ts",
   "compatibility_date": "2026-04-07",
   "triggers": {
